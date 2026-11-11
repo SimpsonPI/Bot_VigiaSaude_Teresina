@@ -205,7 +205,7 @@ async def comando_verificar_todas(update: Update, context: ContextTypes.DEFAULT_
 
     # ✅ Busca as regulações do usuário
     try:
-        res = supabase.table("VigiaSaude_cidadao").select("*").eq("chat_id", user_id).execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").eq("chat_id", user_id).execute()
         regulacoes = res.data if res.data else []
     except Exception as e:
         logger.error(f"Erro ao buscar regulações no Supabase: {e}")
@@ -303,7 +303,7 @@ async def iniciar_verificar_especifico(update: Update, context: ContextTypes.DEF
             )
 
         # 2. Consulta no Supabase
-        res = supabase.table("VigiaSaude_cidadao").select("*").eq("chat_id", user_id).execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").eq("chat_id", user_id).execute()
         regulacoes = res.data if res.data else []
 
         if not regulacoes:
@@ -475,7 +475,7 @@ async def _verificar_especifico_bg(num_reg, user_id, msg_alvo, restantes):
 
         # Busca dados complementares
         try:
-            res_db = supabase.table("VigiaSaude_cidadao").select("*").eq("numero_reg", num_reg).execute()
+            res_db = supabase.table("VigiaSaude_Teresina").select("*").eq("numero_reg", num_reg).execute()
             reg_data = res_db.data[0] if res_db.data else {}
         except Exception:
             reg_data = {}
@@ -488,7 +488,7 @@ async def _verificar_especifico_bg(num_reg, user_id, msg_alvo, restantes):
         try:
             if isinstance(resultado, dict) and resultado.get("sucesso"):
                 status_novo = (resultado.get("situacao") or "Informada no portal").strip()
-                supabase.table("VigiaSaude_cidadao").update({"status_anterior_cidadao": status_novo}).eq(
+                supabase.table("VigiaSaude_Teresina").update({"status_anterior_cidadao": status_novo}).eq(
                     "numero_reg", num_reg
                 ).eq("chat_id", str(user_id)).execute()
         except Exception as e:

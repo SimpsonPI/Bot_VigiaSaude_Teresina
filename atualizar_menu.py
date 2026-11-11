@@ -17,8 +17,6 @@ async def atualizar():
     bot = Bot(token=TOKEN)
     comandos = [
         BotCommand("iniciar", "🚀 Menu principal e boas-vindas"),
-        BotCommand("verificar_todos", "🔍 Verificar todas as regulações"),
-        
         BotCommand("cadastrar_nova", "➕ Cadastrar nova regulação"),
         BotCommand("meus_cadastros", "📋 Ver minhas regulações"),
         BotCommand("corrigir", "✏️ Corrigir dados de regulação"),

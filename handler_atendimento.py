@@ -32,7 +32,7 @@ AGUARDANDO_MENSAGEM_CHAMADO = 1
 async def menu_atendimento(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Exibe o menu principal de atendimento ao cliente."""
     texto = (
-        "🤖 <b>Central de Atendimento VigiaSaude Cidadao</b>\n\n"
+        "🤖 <b>Central de Atendimento VigiaSaude Teresina</b>\n\n"
         "Olá! Como posso ajudar você hoje?\n\n"
         "<b>Opções disponíveis:</b>\n"
         "• ❓ <b>FAQ Automático:</b> Respostas instantâneas para dúvidas frequentes\n"
@@ -71,14 +71,14 @@ async def iniciar_faq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer()
 
         texto = (
-            "📚 <b>FAQ Automático - VigiaSaude Cidadao</b>\n\n"
+            "📚 <b>FAQ Automático - VigiaSaude Teresina</b>\n\n"
             "Digite abaixo sua dúvida que nossa IA tentará responder automaticamente.\n"
             "Ou clique em um dos tópicos abaixo:\n\n"
             "1️⃣ Como cadastrar uma regulação?\n"
             "2️⃣ Como consultar minhas regulações?\n"
             "3️⃣ Onde encontrar o Cartão SUS ou ID?\n"
             "4️⃣ Como alterar meus dados?\n"
-            "6️⃣ O VigiaSaude Cidadao tem vínculo com o governo?"
+            "6️⃣ O VigiaSaude Teresina tem vínculo com o governo?"
         )
 
         teclado = InlineKeyboardMarkup(
@@ -100,7 +100,7 @@ async def iniciar_faq(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(texto, parse_mode="HTML", reply_markup=teclado)
     else:
         texto = (
-            "📚 <b>FAQ Automático - VigiaSaude Cidadao</b>\n\n"
+            "📚 <b>FAQ Automático - VigiaSaude Teresina</b>\n\n"
             "Digite abaixo sua dúvida que nossa IA tentará responder automaticamente.\n"
             "Ou clique em um dos tópicos abaixo:"
         )
@@ -186,7 +186,7 @@ async def iniciar_atendimento_humanizado(
         await query.answer()
 
         texto = (
-            "👤 <b>Atendimento Humanizado - VigiaSaude Cidadao</b>\n\n"
+            "👤 <b>Atendimento Humanizado - VigiaSaude Teresina</b>\n\n"
             "Você será atendido por nossa equipe especializada.\n\n"
             "Por favor, descreva sua dúvida ou problema abaixo.\n"
             "Nossa equipe responderá o mais breve possível (horário comercial: 08h às 18h).\n\n"
@@ -196,7 +196,7 @@ async def iniciar_atendimento_humanizado(
         await query.edit_message_text(texto, parse_mode="HTML")
     else:
         await update.message.reply_text(
-            "👤 <b>Atendimento Humanizado - VigiaSaude Cidadao</b>\n\n"
+            "👤 <b>Atendimento Humanizado - VigiaSaude Teresina</b>\n\n"
             "Por favor, descreva sua dúvida ou problema abaixo.\n"
             "Nossa equipe responderá o mais breve possível.\n\n"
             "<i>Digite sua mensagem agora:</i>",
@@ -327,7 +327,7 @@ async def ver_meus_chamados(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if not res.data:
             await query.edit_message_text(
-                "📋 Você não possui chamados registrados.\n\n" "Se precisar de ajuda, utilize o botão abaixo:",
+                "📋 Você não possui chamados registrados.\n\nSe precisar de ajuda, utilize o botão abaixo:",
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [

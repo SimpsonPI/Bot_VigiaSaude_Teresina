@@ -16,7 +16,7 @@ AGUARDANDO_MENSAGEM = 1
 async def menu_suporte(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Central de Atendimento - Links, FAQs e Email"""
     texto = (
-        "🤖 <b>Central de Atendimento VigiaSaude Cidadao</b>\n\n"
+        "🤖 <b>Central de Atendimento VigiaSaude Teresina</b>\n\n"
         "Como podemos ajudar você hoje?\n\n"
         "<b>📌 Canais de Atendimento:</b>\n"
         "• 🤖 <b>Bot de Atendimento:</b> @central_vigiasaude_bot\n"
@@ -26,7 +26,7 @@ async def menu_suporte(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "2️⃣ Como verificar o status das regulações?\n"
         "3️⃣ Onde encontrar o Cartão SUS ou ID?\n"
         "4️⃣ Como corrigir dados?\n"
-        "6️⃣ O VigiaSaude Cidadao tem vínculo com o governo?\n\n"
+        "6️⃣ O VigiaSaude Teresina tem vínculo com o governo?\n\n"
         "Selecione uma opção abaixo:"
     )
 
@@ -70,11 +70,7 @@ async def exibir_resposta_faq(update: Update, context: ContextTypes.DEFAULT_TYPE
             "• Digite o número do seu <b>Cartão SUS</b> (15 dígitos) ou o <b>ID da Regulação</b> solicitado.\n"
             "• Siga as instruções na tela até a confirmação do cadastro."
         ),
-        "faq_consultar": (
-            "🔍 <b>Como consultar minhas regulações?</b>\n\n"
-            "• Para ver todas as suas regulações: digite <b>/verificar_todos</b>.\n"
-            ""
-        ),
+        "faq_consultar": ("🔍 <b>Como consultar minhas regulações?</b>\n\n"),
         "faq_id": (
             "🆔 <b>Onde encontrar o Cartão SUS ou ID da Regulação?</b>\n\n"
             "• <b>Cartão SUS:</b> O número possui 15 dígitos e pode ser encontrado no seu cartão impresso ou no aplicativo 'Meu SUS Digital'.\n"
@@ -85,8 +81,8 @@ async def exibir_resposta_faq(update: Update, context: ContextTypes.DEFAULT_TYPE
             "• Para alterar informações de uma regulação já cadastrada, utilize o comando <b>/corrigir</b> e selecione o registro desejado."
         ),
         "faq_governo": (
-            "⚠️ <b>O VigiaSaude Cidadao tem vínculo com o governo?</b>\n\n"
-            "Não. O VigiaSaude Cidadao é uma ferramenta <b>independente</b> e não possui vínculo oficial com a Prefeitura de Teresina, FMS ou SUS.\n"
+            "⚠️ <b>O VigiaSaude Teresina tem vínculo com o governo?</b>\n\n"
+            "Não. O VigiaSaude Teresina é uma ferramenta <b>independente</b> e não possui vínculo oficial com a Prefeitura de Teresina, FMS ou SUS.\n"
             "As informações são baseadas nos dados públicos dos portais de regulação."
         ),
     }
@@ -124,7 +120,7 @@ async def iniciar_atendimento_20(update: Update, context: ContextTypes.DEFAULT_T
     await query.answer()
 
     mensagem = (
-        "🤖 <b>Central de Atendimento ao Usuário VigiaSaude Cidadao</b>\n\n"
+        "🤖 <b>Central de Atendimento ao Usuário VigiaSaude Teresina</b>\n\n"
         "Por favor, digite abaixo a sua dúvida ou descreva detalhadamente o seu problema sobre o Cartão SUS ou ID da Regulação.\n\n"
         "<i>Sua mensagem será enviada diretamente para a nossa equipe de suporte.</i>"
     )

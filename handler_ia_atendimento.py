@@ -26,7 +26,7 @@ async def iniciar_atendimento(update: Update, context):
     reply_markup = InlineKeyboardMarkup(teclado)
 
     texto_boas_vindas = (
-        f"Olá, <b>{user_nome}</b>! Seja bem-vinda(o) ao suporte do VigiaSaude Cidadao.\n\n"
+        f"Olá, <b>{user_nome}</b>! Seja bem-vinda(o) ao suporte do VigiaSaude Teresina.\n\n"
         "Para agilizar o seu atendimento, escolha uma das opções abaixo clicando em um dos botões:\n\n"
         f'📧 <b>E-mail:</b> <a href="mailto:{EMAIL_SUPORTE}">{EMAIL_SUPORTE}</a>\n'
         f'🤖 <b>Atendimento:</b> <a href="{BOT_SUPORTE_LINK}">{BOT_SUPORTE_USERNAME}</a>'
@@ -60,7 +60,7 @@ async def tratar_escolha_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
     if dados == "opcao_1":
         resposta = (
             "📌 <b>Como consultar sua regulação:</b>\n\n"
-            "Você pode acompanhar o status da sua regulação diretamente pelo menu principal do VigiaSaude Cidadao inserindo o seu cartão SUS ou CPF."
+            "Você pode acompanhar o status da sua regulação diretamente pelo menu principal do VigiaSaude Teresina inserindo o seu cartão SUS ou CPF."
         )
     elif dados == "opcao_2":
         resposta = (
@@ -80,7 +80,7 @@ async def tratar_escolha_menu(update: Update, context: ContextTypes.DEFAULT_TYPE
         from suporte import AGUARDANDO_MENSAGEM
 
         await query.edit_message_text(
-            text="🎧 <b>Atendimento Personalizado VigiaSaude Cidadao</b>\n\n"
+            text="🎧 <b>Atendimento Personalizado VigiaSaude Teresina</b>\n\n"
             "Escreva abaixo a sua dúvida ou demanda para que nossa equipe receba por aqui:",
             parse_mode="HTML",
         )

@@ -31,6 +31,9 @@ from utils import (
 
 
 async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    # 🛑 LIMPA A MEMÓRIA ANTIGA PARA EVITAR LOOP
+    context.user_data.clear()
+
     """Inicia o cadastro de uma nova regulação institucional."""
     from config import is_admin  # Importação segura no topo da função
 
@@ -40,7 +43,7 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
     # 1. Verifica se o usuário já tem cadastros no histórico vitalício
     try:
         res_hist = (
-            supabase.table("VigiaSaude_cidadao_autorizados")
+            supabase.table("VigiaSaude_Teresina_autorizados")
             .select("cadastros_realizados")
             .eq("chat_id", user_id)
             .execute()
@@ -52,7 +55,7 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
 
     # 2. Conta quantas regulações ativas ele tem agora
     try:
-        res_ativos = supabase.table("VigiaSaude_cidadao").select("id", count="exact").eq("chat_id", user_id).execute()
+        res_ativos = supabase.table("VigiaSaude_Teresina").select("id", count="exact").eq("chat_id", user_id).execute()
         total_regs = res_ativos.count if hasattr(res_ativos, "count") else len(res_ativos.data or [])
     except Exception as e:
         logger.error(f"Erro ao buscar ativos: {e}")
@@ -60,20 +63,20 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
 
     # 3. BLOQUEIOS (Só aplica se NÃO for admin)
     if not admin_user:
-        if cadastros_feitos >= 2:
+        if cadastros_feitos >= 3:
             await update.message.reply_text(
                 "🚫 <b>Limite Gratuito Atingido</b>\n\n"
-                "Você já utilizou suas 2 vagas gratuitas no VigiaSaúde Cidadão.\n\n"
+                "Você já utilizou suas 3 vagas gratuitas no VigiaSaúde Cidadão.\n\n"
                 "Para monitorar novos exames, conheça nossa versão Premium:\n"
                 "👉 @vigiasaude_bot",
                 parse_mode="HTML",
             )
             return ConversationHandler.END
 
-        if total_regs >= 2:
+        if total_regs >= 3:
             await update.message.reply_text(
                 f"📌 <b>Limite de regulações atingido</b>\n\n"
-                f"Você já cadastrou <b>{total_regs}/2</b> regulações — "
+                f"Você já cadastrou <b>{total_regs}/{limite}</b> regulações — "
                 "esse é o máximo permitido pelo sistema.\n\n"
                 "💡 <b>Como cadastrar novas regulações?</b>\n"
                 "Você pode <b>excluir</b> regulações antigas que já foram finalizadas "
@@ -101,7 +104,7 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
 
     try:
         res_sus = (
-            supabase.table("VigiaSaude_cidadao")
+            supabase.table("VigiaSaude_Teresina")
             .select("numero_sus, nome_paciente, data_nascimento")
             .eq("chat_id", user_id)
             .order("id", desc=True)
@@ -122,7 +125,7 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
     if not sus_lista:
         await update.message.reply_text(
             "📝 <b>Iniciando cadastro de nova regulação.</b>\n\n"
-            f"Você tem <b>{total_regs}/2</b> regulações cadastradas.\n\n"
+            f"Você tem <b>{total_regs}/3</b> regulações cadastradas.\n\n"
             "Por favor, digite o <b>número do Cartão SUS</b> do paciente (15 dígitos):",
             parse_mode="HTML",
             reply_markup=TECLADO_CANCELAR,
@@ -141,7 +144,7 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
         )
         await update.message.reply_text(
             "📝 <b>Iniciando cadastro de nova regulação.</b>\n\n"
-            f"Você tem <b>{total_regs}/2</b> regulações cadastradas.\n\n"
+            f"Você tem <b>{total_regs}/3</b> regulações cadastradas.\n\n"
             f"💳 Detectei um Cartão do SUS cadastrado:\n"
             f"<code>{num}</code> · {nome}\n\n"
             "Deseja usar o mesmo número de Cartão do SUS?",
@@ -157,7 +160,7 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
         botoes.append([InlineKeyboardButton("❌ Cancelar", callback_data="iniciar")])
         await update.message.reply_text(
             "📝 <b>Iniciando cadastro de nova regulação.</b>\n\n"
-            f"Você tem <b>{total_regs}/2</b> regulações cadastradas.\n\n"
+            f"Você tem <b>{total_regs}/3</b> regulações cadastradas.\n\n"
             "💳 <b>Selecione qual Cartão do SUS deseja usar:</b>",
             parse_mode="HTML",
             reply_markup=InlineKeyboardMarkup(botoes),
@@ -191,7 +194,7 @@ async def callback_escolher_sus(update: Update, context: ContextTypes.DEFAULT_TY
         try:
             # AQUI ESTAVA O ERRO: A linha do 'res' tinha sido apagada sem querer
             res = (
-                supabase.table("VigiaSaude_cidadao")
+                supabase.table("VigiaSaude_Teresina")
                 .select("nome_paciente, data_nascimento")
                 .eq("chat_id", update.effective_user.id)
                 .eq("numero_sus", num_sus)
@@ -270,7 +273,7 @@ async def receber_sus(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     context.user_data["sus"] = numero_sus
 
     try:
-        resposta = supabase.table("VigiaSaude_cidadao").select("*").eq("numero_sus", numero_sus).execute()
+        resposta = supabase.table("VigiaSaude_Teresina").select("*").eq("numero_sus", numero_sus).execute()
         registros = resposta.data
 
         if registros and len(registros) > 0:
@@ -392,99 +395,62 @@ async def receber_celular(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 async def receber_nascimento(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if await verificar_se_e_menu_e_executar(update, context):
         return ConversationHandler.END
+
     nascimento = formatar_data(update.message.text.strip())
     context.user_data["nascimento"] = nascimento
 
-    texto_id = (
+    texto_cbo = (
         "✅ <b>Data de nascimento registrada.</b>\n\n"
-        "⚠️ <b>PRÓXIMO PASSO: ID da Regulação</b>\n\n"
-        "Antes de digitar, tenha em mãos o seu <b>comprovante de agendamento</b> e confira:\n"
-        "✅ O ID correto no papel\n"
-        "✅ Se os <b>8 dígitos</b> conferem\n\n"
-        "🆔 <b>Digite o ID da Regulação:</b>"
+        "Agora informe a <b>Especialidade</b> da consulta/exame.\n"
+        "<i>(ex: CARDIOLOGISTA, ORTOPEDISTA)</i>\n\n"
+        "Se não souber, digite <code>0</code> para pular."
     )
 
-    # Envia a foto do comprovante com o nome correto
-    caminho_imagem = os.path.join(os.path.dirname(__file__), "comprovante_sus.jpg")
-    try:
-        with open(caminho_imagem, "rb") as foto:
-            await update.message.reply_photo(photo=foto, caption=texto_id, parse_mode="HTML")
-    except Exception as e:
-        logger.error(f"Erro ao enviar imagem: {e}")
-        await update.message.reply_text(texto_id, parse_mode="HTML")
+    # Envia a mensagem pedindo o CBO (sem foto do comprovante, pois a foto era do ID)
+    await update.message.reply_text(texto_cbo, parse_mode="HTML")
 
-    return ETAPA_REGULACAO
+    return ETAPA_CBO  # <-- AQUI ESTAVA O ERRO! Agora vai para a Especialidade.
 
 
 async def receber_regulacao(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if await verificar_se_e_menu_e_executar(update, context):
         return ConversationHandler.END
+
     num_reg = re.sub(r"\D", "", update.message.text)
 
-    if not num_reg:
-        await update.message.reply_text("⚠️ Digite um número de regulação válido (apenas dígitos):")
-        return ETAPA_REGULACAO
-
-    # ✅ Validação: ID da regulação tem 8 dígitos
-    if len(num_reg) != 8:
+    if not num_reg or len(num_reg) != 8:
         await update.message.reply_text(
-            f"⚠️ <b>O ID da regulação deve ter 8 dígitos.</b>\n\n"
-            f"Você digitou <b>{len(num_reg)}</b> dígito(s).\n\n"
-            "📌 <i>Confira no comprovante de agendamento ou na "
-            "unidade básica de saúde.</i>\n\n"
-            "Digite novamente:",
+            f"⚠️ <b>O ID da regulação deve ter 8 dígitos.</b>\n\nDigite novamente:",
             parse_mode="HTML",
         )
         return ETAPA_REGULACAO
 
-    # ✅ Verifica duplicata na conta do usuário
     try:
         chat_id = str(update.effective_user.id)
         res_dup = (
-            supabase.table("VigiaSaude_cidadao")
+            supabase.table("VigiaSaude_Teresina")
             .select("id")
             .eq("numero_reg", num_reg)
             .eq("chat_id", int(chat_id) if chat_id.isdigit() else chat_id)
             .execute()
         )
-
         if res_dup.data:
-            await update.message.reply_text(
-                f"⚠️ <b>Você já cadastrou a regulação {num_reg}!</b>\n\n"
-                ""
-                "• Para corrigir dados: use /corrigir\n\n"
-                "O cadastro foi cancelado.",
-                parse_mode="HTML",
-            )
+            await update.message.reply_text(f"⚠️ <b>Você já cadastrou a regulação {num_reg}!</b>", parse_mode="HTML")
             context.user_data.clear()
             return ConversationHandler.END
     except Exception as e:
-        logger.error(f"Erro ao verificar duplicata no cadastro: {e}")
+        logger.error(f"Erro ao verificar duplicata: {e}")
 
-        # ✅ Salva o número da regulação
+    # Salva o ID
     context.user_data["numero_regulacao"] = num_reg
 
-    # 🔍 VERIFICA SE O NOME JÁ FOI PREENCHIDO (ex: pelo botão "Usar mesmo Cartão")
+    # FLUXO LINEAR: SEMPRE pede o nome (a não ser que venha do botão de reuso)
     if context.user_data.get("nome"):
-        # Se já tem o nome, pula para a próxima etapa que falta
-        if context.user_data.get("nascimento"):
-            # Se já tem nascimento também, pula direto para o CBO (Especialidade)
-            await update.message.reply_text(
-                "Agora informe a <b>Especialidade</b> da consulta/exame.\n"
-                "<i>(ex: CARDIOLOGISTA, OFTALMOLOGISTA, ORTOPEDISTA)</i>\n\n"
-                "Se não souber, digite <code>0</code> para pular.",
-                parse_mode="HTML",
-            )
-            return ETAPA_CBO
-
-        else:
-            # Se tem nome mas falta nascimento, pede a data
-            await update.message.reply_text(
-                "Agora digite a <b>Data de Nascimento</b> do paciente (ex: DD/MM/AAAA):", parse_mode="HTML"
-            )
-            return ETAPA_NASCIMENTO
+        await update.message.reply_text(
+            "Agora, digite a <b>Data de Nascimento</b> do paciente (ex: DD/MM/AAAA):", parse_mode="HTML"
+        )
+        return ETAPA_NASCIMENTO
     else:
-        # Se NÃO tem nome (fluxo manual do zero), pede o nome
         await update.message.reply_text("Qual o nome completo do paciente?")
         return ETAPA_NOME
 
@@ -587,13 +553,13 @@ async def finalizar_cadastro(update: Update, context: ContextTypes.DEFAULT_TYPE)
         try:
             # Atualiza o contador vitalício
             res_atual = (
-                supabase.table("VigiaSaude_cidadao_autorizados")
+                supabase.table("VigiaSaude_Teresina_autorizados")
                 .select("cadastros_realizados")
                 .eq("chat_id", user_id)
                 .execute()
             )
             atual = res_atual.data[0].get("cadastros_realizados", 0) if res_atual.data else 0
-            supabase.table("VigiaSaude_cidadao_autorizados").update({"cadastros_realizados": atual + 1}).eq(
+            supabase.table("VigiaSaude_Teresina_autorizados").update({"cadastros_realizados": atual + 1}).eq(
                 "chat_id", user_id
             ).execute()
         except Exception as e:

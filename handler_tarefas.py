@@ -51,7 +51,7 @@ async def executar_varredura_automatica(context: ContextTypes.DEFAULT_TYPE):
             if status_novo and str(status_novo).strip().upper() != str(status_antigo).strip().upper():
                 try:
                     if asyncio.iscoroutinefunction(atualizar_campo_regulacao):
-                        await atualizar_campo_regulacao(num_reg, "status_anterior_cidadao", status_novo)
+                        await atualizar_campo_regulacao(num_reg, "status_anterior", status_novo)
                     else:
                         atualizar_campo_regulacao(num_reg, "status_anterior_cidadao", status_novo)
                     logger.info(f"Status da regulação {num_reg} atualizado no Supabase para: {status_novo}")
@@ -131,3 +131,70 @@ async def limpar_pagamentos_pendentes():
         logger.info("Pagamentos pendentes com mais de 24h foram limpos.")
     except Exception as e:
         logger.error(f"Erro ao limpar pagamentos: {e}")
+
+
+from datetime import datetime
+from database import supabase
+
+
+async def verificar_alertas_consulta(context):
+    """Varre o banco e envia alertas 7, 3 e 1 dia antes da consulta."""
+    logger.info("⏰ Verificando alertas de consultas agendadas...")
+
+    try:
+        res = supabase.table("VigiaSaude_Teresina").select("*").execute()
+        if not res.data:
+            return
+
+        hoje = datetime.now().date()
+
+        for reg in res.data:
+            chat_id = reg.get("chat_id")
+            numero_reg = reg.get("numero_reg")
+            nome = reg.get("nome_paciente", "Paciente")
+            especialidade = reg.get("cbo", "Consulta")
+            status = str(reg.get("status_anterior") or "").lower()
+            data_str = reg.get("data_consulta")
+
+            # Só envia se estiver "Agendada" ou "MARCADA" e tiver a data
+            if ("agend" in status or "marcad" in status) and data_str:
+                try:
+                    # O scraper salva "DD/MM/YYYY - HH:MM", então cortamos no " - "
+                    data_limpa = str(data_str).split(" - ")[0].strip()
+                    data_consulta = datetime.strptime(data_limpa, "%d/%m/%Y").date()
+
+                    dias_faltando = (data_consulta - hoje).days
+
+                    # 🎯 VERIFICA SE FALTA 7, 3 OU 1 DIA
+                    if dias_faltando in [7, 3, 1]:
+                        # Trava para não enviar duplicado
+                        campo_trava = f"alerta_{dias_faltando}d_enviado"
+                        if reg.get(campo_trava) is True:
+                            continue  # Já foi enviado, pula
+
+                        emoji = "🟢" if dias_faltando == 7 else "🟡" if dias_faltando == 3 else "🔴"
+
+                        texto = (
+                            f"{emoji} <b>LEMBRETE DE CONSULTA!</b>\n\n"
+                            f"Olá, sua consulta está chegando!\n\n"
+                            f"👤 <b>Paciente:</b> {nome}\n"
+                            f"🩺 <b>Especialidade:</b> {especialidade}\n"
+                            f"🆔 <b>Regulação:</b> <code>{numero_reg}</code>\n"
+                            f"📅 <b>Data da Consulta:</b> {data_limpa}\n"
+                            f"⏳ <b>Faltam {dias_faltando} dia(s)!</b>\n\n"
+                            f"<i>Não se esqueça de levar seus documentos e o Cartão SUS.</i>"
+                        )
+
+                        await context.bot.send_message(chat_id=chat_id, text=texto, parse_mode="HTML")
+
+                        # Marca como enviado no banco
+                        supabase.table("VigiaSaude_Teresina").update({campo_trava: True}).eq("chat_id", chat_id).eq(
+                            "numero_reg", numero_reg
+                        ).execute()
+                        logger.info(f"✅ Alerta de {dias_faltando} dias enviado para {chat_id} (Reg: {numero_reg})")
+
+                except ValueError:
+                    pass  # Se a data estiver corrompida, ignora
+
+    except Exception as e:
+        logger.error(f"Erro na rotina de alertas de consulta: {e}")

@@ -125,8 +125,8 @@ async def callback_faq_suporte(update: Update, context: ContextTypes.DEFAULT_TYP
     await query.answer()
 
     faq_texto = (
-        "❓ <b>FAQ e Central de Ajuda — VigiaSaude Cidadão</b>\n\n"
-        "<b>1. O que é o VigiaSaude Cidadão?</b>\n"
+        "❓ <b>FAQ e Central de Ajuda — VigiaSaude Teresina</b>\n\n"
+        "<b>1. O que é o VigiaSaude Teresina?</b>\n"
         "Serviço independente de monitoramento. Não possuímos vínculo oficial com a FMS ou Prefeitura de Teresina, fazemos o monitoramento do andamento de suas regulações de saúde (consultas, exames e cirurgias) de forma automatizada.\n\n"
         "<b>2. Como o bot rastreia minhas solicitações?</b>\n"
         "Utilizamos os dados informados por você (como o número da regulação) para verificar atualizações diretamente nos sistemas públicos.\n\n"
@@ -135,7 +135,7 @@ async def callback_faq_suporte(update: Update, context: ContextTypes.DEFAULT_TYP
         "<b>4. Como faço para corrigir um número ou procedimento?</b>\n"
         "Basta utilizar o comando /corrigir no menu principal para atualizar dados como Especialidade, celular ou nome do paciente.\n\n"
         "<b>5. O bot substitui a fila oficial do SUS?</b>\n"
-        "Não. O VigiaSaude Cidadao é um facilitador de avisos e consultas. A marcação, chamada e gestão de vagas continuam sob responsabilidade exclusiva da Secretaria de Saúde.\n\n"
+        "Não. O VigiaSaude Teresina é um facilitador de avisos e consultas. A marcação, chamada e gestão de vagas continuam sob responsabilidade exclusiva da Secretaria de Saúde.\n\n"
         "<b>6. Como posso falar com o suporte humano?</b>\n"
         "Caso tenha problemas técnicos, envie uma mensagem diretamente para nossa equipe de atendimento."
     )
@@ -195,7 +195,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     nome = user.first_name or "Usuário"
 
     mensagem = (
-        f"👋 Olá, <b>{nome}</b>! Seja bem-vindo(a) ao <b>VigiaSaude Cidadao</b>.\n\n"
+        f"👋 Olá, <b>{nome}</b>! Seja bem-vindo(a) ao <b>VigiaSaude Teresina</b>.\n\n"
         f"🆔 <b>Seu ID do Telegram:</b> <code>{user.id}</code>\n\n"
         "Acesse as opções clicando nos botões abaixo:"
     )
@@ -356,12 +356,12 @@ async def comando_privacidade(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def comando_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Envia o menu de ajuda e FAQs para o usuário."""
     texto = (
-        "🤖 *Central de Ajuda e FAQ - VigiaSaude Cidadao*\n\n"
+        "🤖 *Central de Ajuda e FAQ - VigiaSaude Teresina*\n\n"
         "Selecione uma das opções abaixo para tirar suas dúvidas ou obter suporte:"
     )
 
     teclado = [
-        [InlineKeyboardButton("❓ O que é o VigiaSaude Cidadao?", callback_data="faq_o_que_e")],
+        [InlineKeyboardButton("❓ O que é o VigiaSaude Teresina?", callback_data="faq_o_que_e")],
         [InlineKeyboardButton("🔍 Como rastrear?", callback_data="faq_rastrear")],
         [InlineKeyboardButton("🔒 Segurança de Dados", callback_data="faq_seguranca")],
         [InlineKeyboardButton("✏️ Como corrigir dados", callback_data="faq_corrigir")],
@@ -378,7 +378,7 @@ async def comando_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def comando_suporte(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Central de Atendimento - Links, FAQs e Email"""
     texto = (
-        "🤖 <b>Central de Atendimento VigiaSaude Cidadao</b>\n\n"
+        "🤖 <b>Central de Atendimento VigiaSaude Teresina</b>\n\n"
         "Como podemos ajudar você hoje?\n\n"
         "<b>📌 Canais de Atendimento:</b>\n"
         "• 🤖 <b>Bot de Atendimento:</b> @central_vigiasaude_bot\n"
@@ -388,7 +388,7 @@ async def comando_suporte(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "2️⃣ Como verificar o status das regulações?\n"
         "3️⃣ Onde encontrar o Cartão SUS ou ID?\n"
         "4️⃣ Como corrigir dados?\n"
-        "6️⃣ O VigiaSaude Cidadao tem vínculo com o governo?\n\n"
+        "6️⃣ O VigiaSaude Teresina tem vínculo com o governo?\n\n"
         "Selecione uma opção abaixo:"
     )
 
@@ -427,7 +427,7 @@ async def voltar_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def faq_o_que_e(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    texto = "💡 <b>O que é o VigiaSaude Cidadao?</b>\n\nÉ uma ferramenta independente desenvolvida para facilitar o acompanhamento de status de solicitações de regulação junto aos sistemas públicos de saúde."
+    texto = "💡 <b>O que é o VigiaSaude Teresina?</b>\n\nÉ uma ferramenta independente desenvolvida para facilitar o acompanhamento de status de solicitações de regulação junto aos sistemas públicos de saúde."
     teclado = InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Voltar", callback_data="ajuda")]])
     await query.edit_message_text(texto, parse_mode="HTML", reply_markup=teclado)
 
@@ -608,7 +608,7 @@ async def executar_varredura_automatica(context: ContextTypes.DEFAULT_TYPE):
 
                 status_novo = (resultado_fms.get("situacao") or "").strip()
                 posicao_nova = (resultado_fms.get("posicao_fila") or "").strip()
-                sb.table("VigiaSaude_cidadao").update(
+                sb.table("VigiaSaude_Teresina").update(
                     {
                         "status_anterior_cidadao": status_novo,
                         "posicao_anterior": posicao_nova,
@@ -774,7 +774,7 @@ cancelar_corrigir = cancelar_operacao
 cancelar_excluir = cancelar_operacao
 cancelar_cadastro = cancelar_operacao
 
-verificar_todos = comando_verificar_todas
+
 verificar_especifico = iniciar_verificar_especifico
 cadastrar_nova = iniciar_cadastro_manual
 corrigir = iniciar_corrigir
@@ -786,7 +786,6 @@ privacidade = comando_privacidade
 async def configurar_menu_comandos(app):
     comandos = [
         BotCommand("iniciar", "🚀 Menu principal e boas-vindas"),
-        BotCommand("verificar_todos", "🔍 Verificar todas as regulações"),
         BotCommand("cadastrar_nova", "➕ Cadastrar nova regulação"),
         BotCommand("corrigir", "✏️ Corrigir dados de regulação"),
         BotCommand("excluir", "🗑️ Excluir uma regulação"),
@@ -1005,10 +1004,7 @@ async def faq_consultar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Resposta para Como consultar minhas regulações."""
     query = update.callback_query
     await query.answer()
-    texto = (
-        "🔍 <b>Como consultar minhas regulações?</b>\n\n"
-        "• Para ver todas as suas regulações: digite <b>/verificar_todos</b>.\n"
-    )
+
     teclado = InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Voltar", callback_data="suporte")]])
     await query.edit_message_text(texto, parse_mode="HTML", reply_markup=teclado)
 
@@ -1050,12 +1046,12 @@ async def mostrar_email_suporte(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def faq_governo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Resposta para O VigiaSaude Cidadao tem vínculo com o governo."""
+    """Resposta para O VigiaSaude Teresina tem vínculo com o governo."""
     query = update.callback_query
     await query.answer()
     texto = (
-        "⚠️ <b>O VigiaSaude Cidadao tem vínculo com o governo?</b>\n\n"
-        "Não. O VigiaSaude Cidadao é uma ferramenta <b>independente</b> e não possui vínculo oficial com a Prefeitura de Teresina, FMS ou SUS.\n"
+        "⚠️ <b>O VigiaSaude Teresina tem vínculo com o governo?</b>\n\n"
+        "Não. O VigiaSaude Teresina é uma ferramenta <b>independente</b> e não possui vínculo oficial com a Prefeitura de Teresina, FMS ou SUS.\n"
         "As informações são baseadas nos dados públicos dos portais de regulação."
     )
     teclado = InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Voltar", callback_data="suporte")]])

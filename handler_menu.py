@@ -22,7 +22,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     nome = user.first_name or "Usuário"
 
     mensagem = (
-        f"👋 Olá, <b>{nome}</b>! É um prazer ter você aqui ao <b>VigiaSaude Cidadao</b>.\n\n"
+        f"👋 Olá, <b>{nome}</b>! É um prazer ter você aqui ao <b>VigiaSaude Teresina</b>.\n\n"
         f"🆔 <b>Seu ID do Telegram:</b> <code>{user.id}</code>\n\n"
         "Acesse todas as opções e comandos diretamente pelo menu nativo do Telegram "
         "(botão <b>[/]</b> ao lado da barra de digitação)."
@@ -38,8 +38,8 @@ await update.message.reply_text(
 async def comando_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Responde ao comando de ajuda com o script da Central de Atendimento."""
     script_atendimento = (
-        "🤖 <b>Central de Atendimento Automatizado — VigiaSaude Cidadao</b>\n\n"
-        "Seja bem-vindo(a) ao suporte do VigiaSaude Cidadao! Nosso sistema automatizado está pronto "
+        "🤖 <b>Central de Atendimento Automatizado — VigiaSaude Teresina</b>\n\n"
+        "Seja bem-vindo(a) ao suporte do VigiaSaude Teresina! Nosso sistema automatizado está pronto "
         "para auxiliar você com rapidez e precisão.\n\n"
         "📌 <b>O que você pode fazer por aqui?</b>\n"
         "• Consultar o status das suas regulações ativas.\n"
@@ -53,7 +53,7 @@ async def comando_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [
             [
                 InlineKeyboardButton(
-                    "🤖 Central de Atendimento ao Usuário VigiaSaude Cidadao",
+                    "🤖 Central de Atendimento ao Usuário VigiaSaude Teresina",
                     url="https://t.me/VigiaSaude_Atendimento_ao_Usuario",
                 )
             ]
@@ -73,8 +73,8 @@ async def callback_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     script_atendimento = (
-        "🤖 <b>Central de Atendimento Automatizado — VigiaSaude Cidadao</b>\n\n"
-        "Seja bem-vindo(a) ao suporte do VigiaSaude Cidadao! Nosso sistema automatizado está pronto "
+        "🤖 <b>Central de Atendimento Automatizado — VigiaSaude Teresina</b>\n\n"
+        "Seja bem-vindo(a) ao suporte do VigiaSaude Teresina! Nosso sistema automatizado está pronto "
         "para auxiliar você com rapidez e precisão.\n\n"
         "📌 <b>O que você pode fazer por aqui?</b>\n"
         "• Consultar o status das suas regulações ativas.\n"
@@ -88,7 +88,7 @@ async def callback_ajuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [
             [
                 InlineKeyboardButton(
-                    "🤖 Central de Atendimento ao Usuário VigiaSaude Cidadao",
+                    "🤖 Central de Atendimento ao Usuário VigiaSaude Teresina",
                     url="https://t.me/VigiaSaude_Atendimento_ao_Usuario",
                 )
             ],

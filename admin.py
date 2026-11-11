@@ -34,7 +34,7 @@ async def comando_estatisticas(update: Update, context: ContextTypes.DEFAULT_TYP
         res_ativos = supabase.table("assinaturas").select("tipo_plano", count="exact").eq("status", "ativo").execute()
         total_ativos = res_ativos.count if hasattr(res_ativos, "count") else len(res_ativos.data)
 
-        res_regulacoes = supabase.table("VigiaSaude_cidadao").select("*", count="exact").execute()
+        res_regulacoes = supabase.table("VigiaSaude_Teresina").select("*", count="exact").execute()
         total_regulacoes = res_regulacoes.count if hasattr(res_regulacoes, "count") else len(res_regulacoes.data)
 
         texto = (
@@ -55,7 +55,7 @@ async def comando_listar_ativos(update: Update, context: ContextTypes.DEFAULT_TY
     try:
         # Busca os últimos cadastros na tabela do Teresina
         res = (
-            supabase.table("VigiaSaude_cidadao")
+            supabase.table("VigiaSaude_Teresina")
             .select("chat_id, nome_paciente, numero_sus")
             .order("id", desc=True)
             .limit(10)
@@ -124,7 +124,7 @@ async def comando_detalhes(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         # 🔄 Busca na tabela correta do Teresina
-        response = supabase.table("VigiaSaude_cidadao").select("*").eq("chat_id", target_id).execute()
+        response = supabase.table("VigiaSaude_Teresina").select("*").eq("chat_id", target_id).execute()
         dados = response.data
 
         if not dados:
@@ -404,7 +404,7 @@ async def comando_aviso(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         # 🔄 CORREÇÃO: Busca na tabela correta do Teresina
-        response = supabase.table("VigiaSaude_cidadao").select("chat_id").execute()
+        response = supabase.table("VigiaSaude_Teresina").select("chat_id").execute()
         registros = response.data
 
         if not registros:

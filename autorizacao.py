@@ -10,7 +10,9 @@ logger = logging.getLogger(__name__)
 def verificar_autorizado(chat_id: int) -> bool:
     """Retorna True se o chat_id está na whitelist e ativo."""
     try:
-        res = supabase.table("VigiaSaude_cidadao_autorizados").select("chat_id, ativo").eq("chat_id", chat_id).execute()
+        res = (
+            supabase.table("VigiaSaude_Teresina_autorizados").select("chat_id, ativo").eq("chat_id", chat_id).execute()
+        )
         if not res.data:
             return False
         return bool(res.data[0].get("ativo"))
@@ -22,7 +24,7 @@ def verificar_autorizado(chat_id: int) -> bool:
 def autorizar(chat_id: int, nome: str, admin_id: int) -> bool:
     """Adiciona ou reativa um chat_id na whitelist."""
     try:
-        supabase.table("VigiaSaude_cidadao_autorizados").upsert(
+        supabase.table("VigiaSaude_Teresina_autorizados").upsert(
             {
                 "chat_id": chat_id,
                 "nome": nome or None,
@@ -40,7 +42,7 @@ def autorizar(chat_id: int, nome: str, admin_id: int) -> bool:
 def desautorizar(chat_id: int) -> bool:
     """Marca como inativo (mantém histórico)."""
     try:
-        supabase.table("VigiaSaude_cidadao_autorizados").update({"ativo": False}).eq("chat_id", chat_id).execute()
+        supabase.table("VigiaSaude_Teresina_autorizados").update({"ativo": False}).eq("chat_id", chat_id).execute()
         return True
     except Exception as e:
         logger.error(f"Erro ao desautorizar {chat_id}: {e}")
@@ -51,7 +53,7 @@ def listar_autorizados() -> list:
     """Retorna lista de autorizados ativos."""
     try:
         res = (
-            supabase.table("VigiaSaude_cidadao_autorizados")
+            supabase.table("VigiaSaude_Teresina_autorizados")
             .select("*")
             .eq("ativo", True)
             .order("autorizado_em", desc=True)

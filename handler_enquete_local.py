@@ -118,7 +118,7 @@ async def receber_destino(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if destino == "todos":
         try:
-            res = supabase.table("VigiaSaude_cidadao").select("chat_id").execute()
+            res = supabase.table("VigiaSaude_Teresina").select("chat_id").execute()
             chat_ids = list(set(str(r["chat_id"]) for r in res.data if r.get("chat_id")))
         except Exception as e:
             logger.error(f"Erro ao buscar chat_ids: {e}")

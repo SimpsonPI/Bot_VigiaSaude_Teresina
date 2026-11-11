@@ -36,7 +36,7 @@ from telegram import ReplyKeyboardMarkup
 TECLADO_MENU = ReplyKeyboardMarkup(
     [
         ["/iniciar", "/cadastrar_nova"],
-        ["/verificar_todos", "/meus_cadastros"],
+        ["/meus_cadastros"],
         ["/excluir", "/suporte"],
         ["/privacidade"],
     ],

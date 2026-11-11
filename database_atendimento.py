@@ -278,7 +278,7 @@ async def buscar_estatisticas_admin_periodo() -> dict:
 
     # ---------- REGULAÇÕES ----------
     try:
-        res = supabase.table("VigiaSaude_cidadao").select("numero_reg, created_at").execute()
+        res = supabase.table("VigiaSaude_Teresina").select("numero_reg, created_at").execute()
         regs = res.data if res.data else []
         stats["total_regulacoes"] = len(regs)
         for r in regs:

@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from bot_seguranca import global_error_handler
 from handler_admin_metricas import comando_admin_metricas
 from telegram.ext import PicklePersistence
+from handler_meus_cadastros import callback_verificar_regulacao
 from handler_broadcast_cidadao import (
     iniciar_broadcast,
     receber_e_disparar,
@@ -18,6 +19,7 @@ persistence = PicklePersistence(filepath="bot_persistencia.pickle")
 from handler_broadcast import conv_broadcast
 from admin_panel import comando_painel, callback_painel
 from handler_meus_cadastros import comando_meus_cadastros
+from handler_meus_cadastros import comando_meus_cadastros, callback_verificar_regulacao
 from handler_consultas import (
     comando_verificar_todas,
     iniciar_verificar_especifico,
@@ -142,13 +144,18 @@ async def erro_global_handler(update: object, context: ContextTypes.DEFAULT_TYPE
 
 async def post_init(app):
     """Executa tarefas após a inicialização do bot."""
+
+    # 🛑 LIMPA O CACHE DE COMANDOS DO TELEGRAM (Remove o /verificar_todos do menu)
+    await app.bot.delete_my_commands()
+
     from menu_institucional import configurar_menu_institucional
 
     await configurar_menu_institucional(app)
 
+    # --- CONFIGURAÇÃO DAS TAREFAS AGENDADAS ---
     job_queue = app.job_queue
     if job_queue:
-        # ✅ Varredura automática de regulações (6h)
+        # 1. Varredura automática de regulações (6h)
         from handler import executar_varredura_automatica
 
         job_queue.run_repeating(
@@ -158,7 +165,17 @@ async def post_init(app):
         )
         logger.info("✅ Tarefas agendadas: varredura regulações (6h)")
 
-        # Verifica enquetes expiradas a cada 1 minuto
+        # 2. ✅ Alertas de consulta (7, 3 e 1 dia) - Roda a cada 24h
+        from handler_tarefas import verificar_alertas_consulta
+
+        job_queue.run_repeating(
+            verificar_alertas_consulta,
+            interval=86400,  # 24 horas
+            first=120,  # Roda 2 minutos após o bot ligar
+        )
+        logger.info("✅ Tarefas agendadas: Alertas de consulta (24h)")
+
+        # 3. Verifica enquetes expiradas a cada 1 minuto
         from handler_enquete_local import verificar_enquetes_expiradas
 
         job_queue.run_repeating(
@@ -258,8 +275,8 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("iniciar", start))
     # app.add_handler(CommandHandler("menu", start))
-    app.add_handler(CommandHandler("cadastrar_nova", iniciar_cadastro_manual))
-    app.add_handler(CommandHandler("verificar_todos", comando_verificar_todas))
+    # app.add_handler(CommandHandler("cadastrar_nova", iniciar_cadastro_manual))
+    # app.add_handler(CommandHandler("verificar_todos", comando_verificar_todas))
     # app.add_handler(CommandHandler("verificar_especifico", iniciar_verificar_especifico))
     # app.add_handler(CommandHandler("corrigir", iniciar_corrigir))
     app.add_handler(CommandHandler("excluir", iniciar_excluir))
@@ -308,6 +325,7 @@ def main():
     app.add_handler(CallbackQueryHandler(cancelar_suporte, pattern="^fechar_menu$"))
     app.add_handler(CallbackQueryHandler(suporte_email, pattern="^suporte_email$"))
     app.add_handler(CallbackQueryHandler(mostrar_email_suporte, pattern="^mostrar_email_suporte$"))
+    app.add_handler(CallbackQueryHandler(callback_verificar_regulacao, pattern="^ver_reg_|^verificar_todas_botao$"))
     app.add_handler(conv_suporte)
 
     # Callbacks de privacidade
@@ -339,7 +357,7 @@ def main():
             self.send_response(200)
             self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.end_headers()
-            self.wfile.write(b"VigiaSaude Cidadao is running!")
+            self.wfile.write(b"VigiaSaude Teresina is running!")
 
         def do_HEAD(self):
             self.send_response(200)
@@ -355,7 +373,7 @@ def main():
 
     threading.Thread(target=run_http_server, args=(PORT,), daemon=True).start()
 
-    logger.info("Iniciando o bot VigiaSaude Cidadao Cidadao via polling...")
+    logger.info("Iniciando o bot VigiaSaude Teresina via polling...")
     app.add_error_handler(global_error_handler)
     app.run_polling(drop_pending_updates=False)
 

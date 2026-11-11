@@ -22,7 +22,7 @@ async def comando_admin_metricas(update: Update, context: ContextTypes.DEFAULT_T
 
     try:
         # Busca todos os registros para calcular
-        res = supabase.table("VigiaSaude_cidadao").select("chat_id").execute()
+        res = supabase.table("VigiaSaude_Teresina").select("chat_id").execute()
         registros = res.data
 
         if not registros:

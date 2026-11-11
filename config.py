@@ -74,7 +74,7 @@ MSG_ATENDIMENTO_ENCERRADO = "❌ Atendimento encerrado. Se precisar de algo, ace
 MSG_MODAL_RESPOSTA = "✍️ <b>Modo de Resposta Ativado</b> para o ID: <code>{user_id}</code>\n\nDigite a mensagem que deseja enviar para este usuário agora:"
 
 MSG_BOAS_VINDAS = (
-    "🤖 <b>Central de Atendimento ao Usuário VigiaSaude Cidadao</b>\n\n"
+    "🤖 <b>Central de Atendimento ao Usuário VigiaSaude Teresina</b>\n\n"
     "É um prazer ter você aqui! Como posso ajudá-lo hoje?\n\n"
     "🔹 <b>Menu Principal:</b>\n"
     "• /ajuda - Perguntas Frequentes (FAQ)\n"
@@ -93,12 +93,12 @@ MSG_SUPORTE_INICIAL = (
 )
 
 MSG_ATENDIMENTO_INICIADO = (
-    "🎧 <b>Atendimento Personalizado VigiaSaude Cidadao</b>\n\n"
+    "🎧 <b>Atendimento Personalizado VigiaSaude Teresina</b>\n\n"
     "Olá! Escreva abaixo a sua dúvida ou demanda para que nossa equipe receba por aqui:\n\n"
     "✏️ <i>Digite sua mensagem agora...</i>"
 )
 
-RODAPE_ALERTAS = f"\n\n━━━━━━━━━━━━━━━━━━━━\n" f"📧 E-mail: {EMAIL_SUPORTE}\n" f"🤖 Atendimento: {BOT_SUPORTE_LINK}"
+RODAPE_ALERTAS = f"\n\n━━━━━━━━━━━━━━━━━━━━\n📧 E-mail: {EMAIL_SUPORTE}\n🤖 Atendimento: {BOT_SUPORTE_LINK}"
 
 # ==================== CONFIGURAÇÕES DE SEGURANÇA ====================
 

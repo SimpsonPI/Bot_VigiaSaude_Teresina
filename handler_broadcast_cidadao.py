@@ -43,7 +43,7 @@ async def receber_e_disparar(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await msg.reply_text("⏳ Buscando usuários e iniciando o disparo... Por favor, aguarde.")
 
     try:
-        res = supabase.table("VigiaSaude_cidadao").select("chat_id").execute()
+        res = supabase.table("VigiaSaude_Teresina").select("chat_id").execute()
         chat_ids = list(set([str(r.get("chat_id")) for r in res.data if r.get("chat_id")]))
 
         # 🚫 FILTRO: Remove o ID do Admin da lista (para você não receber)

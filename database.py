@@ -111,8 +111,7 @@ def ativar_ou_atualizar_assinatura(telegram_id: int, tipo_plano: str):
                         if venc_dt > agora:
                             base = venc_dt  # usa o vencimento futuro
                             logger.info(
-                                f"📅 Soma aplicada: base = {base.strftime('%d/%m/%Y')} "
-                                f"(vencimento atual ainda ativo)"
+                                f"📅 Soma aplicada: base = {base.strftime('%d/%m/%Y')} (vencimento atual ainda ativo)"
                             )
             except Exception as e:
                 logger.warning(f"Erro ao checar vencimento atual (usando 'agora'): {e}")
@@ -132,7 +131,7 @@ def ativar_ou_atualizar_assinatura(telegram_id: int, tipo_plano: str):
 
         resposta = supabase.table("assinaturas").upsert(dados, on_conflict="chat_id").execute()
         logger.info(
-            f"✅ Assinatura '{tipo_plano}' atualizada para {telegram_id} | " f"Vence: {vencimento.strftime('%d/%m/%Y')}"
+            f"✅ Assinatura '{tipo_plano}' atualizada para {telegram_id} | Vence: {vencimento.strftime('%d/%m/%Y')}"
         )
         return resposta.data if resposta else True
     except Exception as e:
@@ -169,7 +168,7 @@ async def iniciar_degustacao(chat_id: int) -> bool:
 def buscar_todas_regulacoes_ativas():
     """Busca todas as regulações cadastradas ativas no Supabase para varredura."""
     try:
-        res = supabase.table("VigiaSaude_cidadao").select("*").execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").execute()
         return res.data if res and res.data else []
     except Exception as e:
         logger.error(f"Erro ao buscar regulações ativas: {e}")
@@ -179,11 +178,11 @@ def buscar_todas_regulacoes_ativas():
 def buscar_regulacoes_por_chat_id(chat_id):
     """Busca as regulações de um usuário específico, testando tipos diferentes."""
     try:
-        res = supabase.table("VigiaSaude_cidadao").select("*").eq("chat_id", str(chat_id)).execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").eq("chat_id", str(chat_id)).execute()
         if res.data:
             return res.data
 
-        res = supabase.table("VigiaSaude_cidadao").select("*").eq("chat_id", int(chat_id)).execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").eq("chat_id", int(chat_id)).execute()
         return res.data if res.data else []
     except Exception as e:
         logger.error(f"Erro ao buscar regulações para o chat_id {chat_id}: {e}")
@@ -193,11 +192,11 @@ def buscar_regulacoes_por_chat_id(chat_id):
 def obter_regulacao_por_numero(num_reg: str):
     """Busca uma regulação específica pelo número de regulação ou protocolo."""
     try:
-        res = supabase.table("VigiaSaude_cidadao").select("*").eq("numero_reg", str(num_reg)).execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").eq("numero_reg", str(num_reg)).execute()
         if res.data:
             return res.data[0]
 
-        res_alt = supabase.table("VigiaSaude_cidadao").select("*").eq("protocolo", str(num_reg)).execute()
+        res_alt = supabase.table("VigiaSaude_Teresina").select("*").eq("protocolo", str(num_reg)).execute()
         return res_alt.data[0] if res_alt and res_alt.data else None
     except Exception as e:
         logger.error(f"Erro ao obter regulação por número ({num_reg}): {e}")
@@ -206,7 +205,7 @@ def obter_regulacao_por_numero(num_reg: str):
 
 async def salvar_regulacao(dados):
     try:
-        supabase.table("VigiaSaude_cidadao").insert(dados).execute()
+        supabase.table("VigiaSaude_Teresina").insert(dados).execute()
         return True
     except Exception as e:
         print(f"Erro: {e}")
@@ -230,7 +229,7 @@ def atualizar_campo_regulacao(num_reg: str, campo: str, valor: str, chat_id: str
     compartilhadas de outros usuários).
     """
     try:
-        query = supabase.table("VigiaSaude_cidadao").update({campo: valor}).eq("numero_reg", str(num_reg))
+        query = supabase.table("VigiaSaude_Teresina").update({campo: valor}).eq("numero_reg", str(num_reg))
         if chat_id is not None:
             query = query.eq("chat_id", int(chat_id) if str(chat_id).isdigit() else chat_id)
         res = query.execute()
@@ -243,7 +242,7 @@ def atualizar_campo_regulacao(num_reg: str, campo: str, valor: str, chat_id: str
 def excluir_regulacao_db(num_reg: str):
     """Exclui uma regulação do banco de dados pelo seu número/protocolo."""
     try:
-        res = supabase.table("VigiaSaude_cidadao").delete().eq("numero_reg", str(num_reg)).execute()
+        res = supabase.table("VigiaSaude_Teresina").delete().eq("numero_reg", str(num_reg)).execute()
         return res.data if res and res.data else True
     except Exception as e:
         logger.error(f"Erro ao excluir regulação {num_reg}: {e}")
@@ -253,7 +252,7 @@ def excluir_regulacao_db(num_reg: str):
 def desativar_regulacoes_por_chat_id(chat_id: int):
     """Desativa ou remove monitoramentos associados a um chat ID que bloqueou o bot."""
     try:
-        res = supabase.table("VigiaSaude_cidadao").update({"ativa": False}).eq("telegram_id", str(chat_id)).execute()
+        res = supabase.table("VigiaSaude_Teresina").update({"ativa": False}).eq("telegram_id", str(chat_id)).execute()
         return res.data
     except Exception as e:
         logger.error(f"Erro ao desativar regulações do chat_id {chat_id}: {e}")
@@ -265,7 +264,7 @@ def buscar_dados_por_sus(numero_sus: str):
     try:
         sus_limpo = str(numero_sus).strip()
         res = (
-            supabase.table("VigiaSaude_cidadao")
+            supabase.table("VigiaSaude_Teresina")
             .select("nome_paciente, data_nascimento, chat_id")
             .eq("numero_sus", sus_limpo)
             .order("id", desc=True)

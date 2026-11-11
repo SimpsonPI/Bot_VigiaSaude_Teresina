@@ -30,7 +30,7 @@ def _mascarar_nome_custom(nome: str) -> str:
 async def iniciar_corrigir(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         user_id = update.effective_user.id
-        res = supabase.table("VigiaSaude_cidadao").select("*").eq("chat_id", user_id).execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").eq("chat_id", user_id).execute()
         regulacoes_brutas = res.data if res.data else []
 
         if not regulacoes_brutas:
@@ -80,7 +80,7 @@ async def mostrar_resumo_regulacao(update_or_query, context, num_reg, chat_id=No
     Busca os dados atuais da regulação no Supabase e exibe o resumo para confirmação.
     """
     try:
-        query = supabase.table("VigiaSaude_cidadao").select("*").eq("numero_reg", num_reg)
+        query = supabase.table("VigiaSaude_Teresina").select("*").eq("numero_reg", num_reg)
         if chat_id is not None:
             query = query.eq("chat_id", chat_id)
         response = query.execute()
@@ -131,7 +131,13 @@ async def selecionar_regulacao_callback(update: Update, context: ContextTypes.DE
         chat_id = update.effective_user.id
         dados = {}
         try:
-            res = supabase.table("VigiaSaude_cidadao").select("*").eq("numero_reg", num_reg).eq("chat_id", chat_id).execute()
+            res = (
+                supabase.table("VigiaSaude_Teresina")
+                .select("*")
+                .eq("numero_reg", num_reg)
+                .eq("chat_id", chat_id)
+                .execute()
+            )
             if res.data:
                 dados = res.data[0]
         except Exception as e:
@@ -241,7 +247,7 @@ async def salvar_novo_valor(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         # Verifica se o novo ID já existe para este usuário
         try:
             res_dup = (
-                supabase.table("VigiaSaude_cidadao")
+                supabase.table("VigiaSaude_Teresina")
                 .select("id")
                 .eq("numero_reg", novo_valor)
                 .eq("chat_id", int(chat_id) if chat_id.isdigit() else chat_id)
@@ -269,7 +275,7 @@ async def salvar_novo_valor(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         digitos = re.sub(r"\D", "", novo_valor)
         if len(digitos) < 10:
             await update.message.reply_text(
-                "⚠️ <b>Número de celular inválido.</b>\n\n" "Digite com DDD (ex: 86999999999).",
+                "⚠️ <b>Número de celular inválido.</b>\n\nDigite com DDD (ex: 86999999999).",
                 parse_mode="HTML",
                 reply_markup=TECLADO_MENU,
             )
@@ -279,7 +285,7 @@ async def salvar_novo_valor(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     # 3. Executa o UPDATE com filtro por chat_id (CRÍTICO)
     try:
-        query = supabase.table("VigiaSaude_cidadao").update({campo: novo_valor}).eq("numero_reg", num_reg)
+        query = supabase.table("VigiaSaude_Teresina").update({campo: novo_valor}).eq("numero_reg", num_reg)
 
         # Se o chat_id for numérico, compara como int
         try:
@@ -293,7 +299,7 @@ async def salvar_novo_valor(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         if campo in ("numero_reg", "numero_regulacao", "id_regulacao"):
             try:
                 query_reset = (
-                    supabase.table("VigiaSaude_cidadao")
+                    supabase.table("VigiaSaude_Teresina")
                     .update({"status_anterior_cidadao": None})
                     .eq("numero_reg", novo_valor)
                 )
@@ -340,7 +346,7 @@ async def salvar_novo_valor(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def iniciar_excluir(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     try:
         user_id = update.effective_user.id
-        res = supabase.table("VigiaSaude_cidadao").select("*").eq("chat_id", user_id).execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*").eq("chat_id", user_id).execute()
         regulacoes_brutas = res.data if res.data else []
 
         # Remove duplicatas com base no 'numero_reg' para a exibição
@@ -419,7 +425,7 @@ async def confirmar_exclusao_callback(update: Update, context: ContextTypes.DEFA
         num_reg = context.user_data.get("del_num_reg")
         user_id = update.effective_user.id
         try:
-            supabase.table("VigiaSaude_cidadao").delete().eq("numero_reg", num_reg).eq("chat_id", user_id).execute()
+            supabase.table("VigiaSaude_Teresina").delete().eq("numero_reg", num_reg).eq("chat_id", user_id).execute()
             await query.edit_message_text(f"🗑️ Regulação <b>{num_reg}</b> excluída com sucesso.", parse_mode="HTML")
         except Exception as e:
             logger.error(f"Erro ao excluir regulação no Supabase: {e}")

@@ -27,7 +27,7 @@ GITHUB_BASE_URL = "https://raw.githubusercontent.com/SimpsonPI/central_alertasus
 
 TABELAS_PERMITIDAS = [
     "assinaturas",
-    "VigiaSaude_cidadao",
+    "VigiaSaude_Teresina",
     "pagamentos_pix",
     "lgpd_consentimentos",
 ]
@@ -120,7 +120,7 @@ async def coletar_contexto_sistema() -> str:
                 linhas.append("• Detalhes das ativas:")
                 for e in ativas[:5]:
                     r = calcular_resultado(e)
-                    linhas.append(f'  - #{e["id"]}: "{e.get("pergunta", "")[:60]}" ' f"({r['total']} voto(s))")
+                    linhas.append(f'  - #{e["id"]}: "{e.get("pergunta", "")[:60]}" ({r["total"]} voto(s))')
             else:
                 linhas.append("• Nenhuma enquete ativa no momento.")
 
@@ -151,7 +151,7 @@ async def coletar_contexto_sistema() -> str:
 
     # ─── Regulações ───
     try:
-        res = supabase.table("VigiaSaude_cidadao").select("*", count="exact").execute()
+        res = supabase.table("VigiaSaude_Teresina").select("*", count="exact").execute()
         total_reg = res.count if hasattr(res, "count") and res.count is not None else len(res.data or [])
         linhas.append(f"\nREGULAÇÕES:")
         linhas.append(f"• Total cadastradas: {total_reg}")
@@ -274,7 +274,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
             inicio = agora - timedelta(days=1)
 
             novas_regulacoes = (
-                supabase.table("VigiaSaude_cidadao")
+                supabase.table("VigiaSaude_Teresina")
                 .select("*", count="exact")
                 .gte("created_at", inicio.isoformat())
                 .execute()
@@ -379,7 +379,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
         '"tabela": "nome_da_tabela", '
         '"filtros": {"campo": "valor"}, '
         '"arquivo": "nome_do_arquivo"} '
-        "Tabelas disponíveis: assinaturas, VigiaSaude_cidadao, pagamentos_pix, lgpd_consentimentos. "
+        "Tabelas disponíveis: assinaturas, 'VigiaSaude_Teresina', pagamentos_pix, lgpd_consentimentos. "
         "Para perguntas sobre preços de planos, use a ação 'resumo' (a informação está no conhecimento). "
         'Se não souber, retorne {"acao": "resumo"}.'
     )
@@ -426,7 +426,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
         elif acao == "resumo":
             try:
                 total_assinaturas = supabase.table("assinaturas").select("*", count="exact").execute().count
-                total_regulacoes = supabase.table("VigiaSaude_cidadao").select("*", count="exact").execute().count
+                total_regulacoes = supabase.table("VigiaSaude_Teresina").select("*", count="exact").execute().count
                 total_pix_pendentes = (
                     supabase.table("pagamentos_pix").select("*", count="exact").eq("status", "pending").execute().count
                 )

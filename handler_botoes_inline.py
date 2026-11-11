@@ -35,8 +35,6 @@ async def executar_comando_inline(update: Update, context: ContextTypes.DEFAULT_
         await start(update, context)
     elif cmd == "cmd_cadastrar_nova":
         await iniciar_cadastro_manual(update, context)
-    elif cmd == "cmd_verificar_todos":
-        await comando_verificar_todas(update, context)
     elif cmd == "cmd_meus_cadastros":
         await comando_meus_cadastros(update, context)
     elif cmd == "cmd_suporte":
