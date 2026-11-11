@@ -478,7 +478,7 @@ async def receber_cbo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
     if valor == "0":
         context.user_data["cbo"] = ""
         await update.message.reply_text(
-            "Agora informe o <b>Procedimento/Exame</b>.\n<i>(ex: CONSULTA, ULTRASSONOGRAFIA, EXAME DE SANGUE)</i>",
+            "Agora informe o <b>Procedimento/Exame</b>.\n<i>(ex: CONSULTA, EXAME)</i>",
             parse_mode="HTML",
         )
         return ETAPA_PROCEDIMENTO
