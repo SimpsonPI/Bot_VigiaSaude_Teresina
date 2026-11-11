@@ -31,14 +31,17 @@ from utils import (
 
 
 async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    # 🛑 LIMPA A MEMÓRIA ANTIGA PARA EVITAR LOOP
-    context.user_data.clear()
+    # 🛑 LIMPA A MEMÓRIA E IGNORA CLIQUES DUPLICADOS
+    if context.user_data.get("_processando_cadastro"):
+        return ConversationHandler.END
+
+    context.user_data["_processando_cadastro"] = True
 
     """Inicia o cadastro de uma nova regulação institucional."""
-    from config import is_admin  # Importação segura no topo da função
+    from config import is_admin
 
     user_id = update.effective_user.id
-    admin_user = is_admin(user_id)  # Verifica se é admin logo de cara
+    admin_user = is_admin(user_id)
 
     # 1. Verifica se o usuário já tem cadastros no histórico vitalício
     try:
@@ -71,12 +74,14 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
                 "👉 @vigiasaude_bot",
                 parse_mode="HTML",
             )
+            # Libera a trava antes de sair
+            context.user_data.pop("_processando_cadastro", None)
             return ConversationHandler.END
 
         if total_regs >= 3:
             await update.message.reply_text(
                 f"📌 <b>Limite de regulações atingido</b>\n\n"
-                f"Você já cadastrou <b>{total_regs}/{limite}</b> regulações — "
+                f"Você já cadastrou <b>{total_regs}/3</b> regulações — "
                 "esse é o máximo permitido pelo sistema.\n\n"
                 "💡 <b>Como cadastrar novas regulações?</b>\n"
                 "Você pode <b>excluir</b> regulações antigas que já foram finalizadas "
@@ -85,8 +90,17 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
                 "Assim que excluir uma, poderá cadastrar novas normalmente. 😊",
                 parse_mode="HTML",
             )
+            # Libera a trava antes de sair
+            context.user_data.pop("_processando_cadastro", None)
             return ConversationHandler.END
 
+    # =========================================================
+    # AQUI ENTRA O RESTO DO SEU CÓDIGO (O QUE JÁ EXISTIA)
+    # Provavelmente a escolha do Cartão SUS e o envio do teclado
+    # Exemplo:
+    # await update.message.reply_text("Digite o Cartão SUS:", ...)
+    # return ETAPA_SUS
+    # =========================================================
     # ---------------------------------------------------------
     # Se chegou até aqui, é Admin OU está dentro do limite.
     # ---------------------------------------------------------
