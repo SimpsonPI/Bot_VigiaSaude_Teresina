@@ -3,7 +3,7 @@ import logging
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 
-from config import ADMIN_CHAT_ID
+from config import ADMIN_IDS, ADMIN_CHAT_ID
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +126,10 @@ def _texto_sistema() -> str:
 
 
 async def comando_painel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    import sys
+
+    print(f"DEBUG ADMIN: Recebi clique do ID {update.effective_user.id}", flush=True)
+    print(f"DEBUG ADMIN: A lista de admins é {ADMIN_IDS} e o chat é {ADMIN_CHAT_ID}", flush=True)
     """Abre o painel de controle interativo."""
     if not _eh_admin(update.effective_user.id):
         if update.message:
