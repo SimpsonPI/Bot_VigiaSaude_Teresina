@@ -178,11 +178,11 @@ async def post_init(app):
         # 3. Verifica enquetes expiradas a cada 1 minuto
         from handler_enquete_local import verificar_enquetes_expiradas
 
-        job_queue.run_repeating(
-            verificar_enquetes_expiradas,
-            interval=60,
-            first=30,
-        )
+        # job_queue.run_repeating(
+        # verificar_enquetes_expiradas,
+        # interval=60,
+        # first=30,
+        # )
         logger.info("✅ Tarefas agendadas: enquetes expiradas (60s)")
 
 
