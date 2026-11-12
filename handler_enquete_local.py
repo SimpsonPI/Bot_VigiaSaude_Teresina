@@ -827,7 +827,6 @@ async def verificar_enquetes_expiradas(context: ContextTypes.DEFAULT_TYPE):
 
         mensagens = obter_mensagens(enq["id"])
 
-        # Apaga a mensagem de cada usuário que votou
         for chat_id, message_id in mensagens.items():
             try:
                 await context.bot.delete_message(chat_id=chat_id, message_id=message_id)
@@ -837,6 +836,8 @@ async def verificar_enquetes_expiradas(context: ContextTypes.DEFAULT_TYPE):
 
         encerrar_enquete(enq["id"])
         limpar_mensagens(enq["id"])
+
+        # Não há mais envio de mensagem para o admin aqui.
 
         # Opcional: Avisar o admin que a enquete expirou (sem spam)
         # Se você NÃO quiser nem isso, basta apagar este bloco "try" inteiro.
