@@ -21,7 +21,21 @@ from telegram.ext import (
     filters,
 )
 from telegram.warnings import PTBUserWarning
+
+# --- IMPORTAÇÕES DO SEU PROJETO ---
 from handler_meus_cadastros import comando_meus_cadastros
+
+# Procure o bloco onde você importa as ETAPAS (provavelmente vem do utils)
+from utils import (
+    # ... outras etapas ...
+    ETAPA_RESUMO,  # <-- ADICIONE ESTA LINHA AQUI
+)
+
+# Procure o bloco onde você importa as funções do handler_cadastro
+from handler_cadastro import (
+    # ... outras funções ...
+    processar_resumo,  # <-- ADICIONE ESTA LINHA AQUI
+)
 
 # Silencia os avisos de rastreamento do ConversationHandler
 warnings.filterwarnings("ignore", category=PTBUserWarning)
@@ -36,7 +50,10 @@ from database import (
     supabase,
 )
 from handler_cadastro import (
+    processar_resumo,
     iniciar_cadastro_manual,
+    iniciar_correcao,
+    receber_correcao,
     receber_cbo,
     receber_celular,
     receber_nascimento,
@@ -65,12 +82,14 @@ from handler_gestao import (
     selecionar_regulacao_excluir_callback,
 )
 from utils import (
+    ETAPA_RESUMO,
     AGUARDAR_NOVO_VALOR,
     CONFIRMAR_EXCLUSAO,
     CONSULTAR_ID,
     ETAPA_CBO,
     ETAPA_CELULAR,
     ETAPA_LGPD,
+    ETAPA_CORRIGINDO,
     ETAPA_CONFIRMAR_REUSO,
     ETAPA_NASCIMENTO,
     ETAPA_NOME,
@@ -832,12 +851,13 @@ conv_cadastro = ConversationHandler(
     entry_points=[
         CommandHandler("cadastrar", iniciar_cadastro_manual),
         CommandHandler("cadastrar_nova", iniciar_cadastro_manual),
+        MessageHandler(filters.Regex(r"^/?cadastrar_nova$"), iniciar_cadastro_manual),  # <-- ADICIONE ESTA LINHA
         CallbackQueryHandler(iniciar_cadastro_manual, pattern="^cadastrar_nova$"),
     ],
     states={
         ETAPA_ESCOLHER_SUS: [CallbackQueryHandler(callback_escolher_sus, pattern="^(usar_sus_.*|novo_sus|cancelar)$")],
         ETAPA_SUS: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_sus)],
-        ETAPA_CONFIRMAR_REUSO: [  # ← NOVO BLOCO
+        ETAPA_CONFIRMAR_REUSO: [
             CallbackQueryHandler(callback_reuso_dados, pattern="^reuso_(sim|nao)$"),
         ],
         ETAPA_NOME: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_nome)],
@@ -846,6 +866,13 @@ conv_cadastro = ConversationHandler(
         ETAPA_REGULACAO: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_regulacao)],
         ETAPA_CBO: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_cbo)],
         ETAPA_PROCEDIMENTO: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_procedimento)],
+        # --- ETAPA DE RESUMO (Aceita os botões de resumo E os de corrigir) ---
+        ETAPA_RESUMO: [
+            CallbackQueryHandler(processar_resumo, pattern="^resumo_"),
+            CallbackQueryHandler(iniciar_correcao, pattern="^corrigir_"),  # <-- ADICIONE ESTA LINHA
+        ],
+        # -------------------------------------------------------------------
+        ETAPA_CORRIGINDO: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_correcao)],
         ETAPA_LGPD: [CallbackQueryHandler(finalizar_cadastro, pattern="^(aceitar_lgpd|cancelar_cadastro)$")],
     },
     fallbacks=[CommandHandler("cancelar", cancelar_operacao)],

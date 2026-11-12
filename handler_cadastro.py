@@ -12,7 +12,6 @@ from database import salvar_regulacao, registrar_consentimento_lgpd, supabase
 from utils import (
     DISCLAIMER_TEXTO,
     TECLADO_MENU,
-    TECLADO_CANCELAR,
     ETAPA_SUS,
     ETAPA_NOME,
     ETAPA_CELULAR,
@@ -21,6 +20,8 @@ from utils import (
     ETAPA_CBO,
     ETAPA_PROCEDIMENTO,
     ETAPA_LGPD,
+    ETAPA_RESUMO,
+    ETAPA_CORRIGINDO,
     ETAPA_CONFIRMAR_REUSO,
     ETAPA_ESCOLHER_SUS,
     formatar_data,
@@ -31,12 +32,6 @@ from utils import (
 
 
 async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    # 🛑 LIMPA A MEMÓRIA E IGNORA CLIQUES DUPLICADOS
-    if context.user_data.get("_processando_cadastro"):
-        return ConversationHandler.END
-
-    context.user_data["_processando_cadastro"] = True
-
     """Inicia o cadastro de uma nova regulação institucional."""
     from config import is_admin
 
@@ -74,8 +69,6 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
                 "👉 @vigiasaude_bot",
                 parse_mode="HTML",
             )
-            # Libera a trava antes de sair
-            context.user_data.pop("_processando_cadastro", None)
             return ConversationHandler.END
 
         if total_regs >= 3:
@@ -90,9 +83,14 @@ async def iniciar_cadastro_manual(update: Update, context: ContextTypes.DEFAULT_
                 "Assim que excluir uma, poderá cadastrar novas normalmente. 😊",
                 parse_mode="HTML",
             )
-            # Libera a trava antes de sair
-            context.user_data.pop("_processando_cadastro", None)
             return ConversationHandler.END
+
+    # 4. Inicia o fluxo de perguntas
+    await update.message.reply_text(
+        "Ok! Digite o número do Cartão SUS do paciente (15 dígitos):",
+        parse_mode="HTML",
+    )
+    return ETAPA_SUS
 
     # =========================================================
     # AQUI ENTRA O RESTO DO SEU CÓDIGO (O QUE JÁ EXISTIA)
@@ -500,25 +498,12 @@ async def receber_cbo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int
 async def receber_procedimento(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if await verificar_se_e_menu_e_executar(update, context):
         return ConversationHandler.END
-    proc = update.message.text.strip()
-    proc = proc.replace("<", "").replace(">", "").replace("&", "&amp;")[:80]
-    context.user_data["procedimento"] = formatar_maiusculo(proc)
 
-    teclado_lgpd = InlineKeyboardMarkup(
-        [
-            [InlineKeyboardButton("✅ Aceitar e Finalizar", callback_data="aceitar_lgpd")],
-            [InlineKeyboardButton("❌ Cancelar Cadastro", callback_data="cancelar_cadastro")],
-        ]
-    )
+    procedimento = formatar_maiusculo(update.message.text.strip())
+    context.user_data["procedimento"] = procedimento
 
-    await update.message.reply_text(
-        "🛡️ <b>TERMO DE CONSENTIMENTO LGPD</b>\n\n"
-        "Para prosseguir com o monitoramento automático, autorizo o armazenamento dos dados fornecidos exclusivamente para finalidades de consulta pública no sistema FMS Piauí.\n\n"
-        f"{DISCLAIMER_TEXTO}\n\nVocê aceita o termo?",
-        parse_mode="HTML",
-        reply_markup=teclado_lgpd,
-    )
-    return ETAPA_LGPD
+    # Em vez de salvar no banco, chama a tela de resumo
+    return await mostrar_resumo(update, context)
 
 
 from bot_seguranca import safe_callback
@@ -536,7 +521,7 @@ async def finalizar_cadastro(update: Update, context: ContextTypes.DEFAULT_TYPE)
     chat_id = update.effective_chat.id
     dados = context.user_data
 
-    if query.data == "cancelar_cadastro":
+    if query.data == "cancelar_cadastro" or query.data == "resumo_cancelar":
         try:
             await query.message.delete()
         except Exception:
@@ -601,3 +586,144 @@ async def finalizar_cadastro(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data.clear()
     context.user_data.pop("_em_fluxo_admin", None)
     return ConversationHandler.END
+
+
+async def mostrar_resumo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Mostra a tela de resumo antes de salvar no banco."""
+    query = update.callback_query
+    if query:
+        await query.answer()
+        chat_id = query.message.chat_id
+    else:
+        chat_id = update.message.chat_id
+
+    dados = context.user_data
+
+    texto = (
+        "📋 <b>RESUMO DO CADASTRO</b>\n\n"
+        f"👤 <b>Paciente:</b> {dados.get('nome', 'Não informado')}\n"
+        f"🩺 <b>Especialidade:</b> {dados.get('cbo', 'Não informada')}\n"
+        f"📋 <b>Procedimento:</b> {dados.get('procedimento', 'Não informado')}\n"
+        f"🆔 <b>Regulação:</b> <code>{dados.get('numero_regulacao', 'S/N')}</code>\n"
+        f"📅 <b>Nascimento:</b> {dados.get('nascimento', 'Não informada')}\n"
+        f"🏦 <b>Cartão SUS:</b> <code>{dados.get('sus', 'Não informado')}</code>\n\n"
+        "<i>Os dados estão corretos?</i>"
+    )
+
+    teclado = InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("✅ Confirmar e Salvar", callback_data="resumo_confirmar")],
+            [InlineKeyboardButton("✏️ Corrigir Dados", callback_data="resumo_corrigir")],
+            [InlineKeyboardButton("❌ Cancelar Cadastro", callback_data="resumo_cancelar")],
+        ]
+    )
+
+    await context.bot.send_message(chat_id=chat_id, text=texto, parse_mode="HTML", reply_markup=teclado)
+
+    # Retorna um novo estado para aguardar o clique do usuário
+    return ETAPA_RESUMO
+
+
+async def processar_resumo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data == "resumo_confirmar":
+        # Aqui chamamos a sua função antiga de salvar no banco (finalizar_cadastro)
+        return await finalizar_cadastro(update, context)
+
+    elif data == "resumo_cancelar":
+        await query.edit_message_text(
+            "❌ <b>Cadastro cancelado.</b>\n\nVolte ao menu para tentar novamente.", parse_mode="HTML"
+        )
+        context.user_data.clear()
+        return ConversationHandler.END
+
+    elif data == "resumo_corrigir":
+        teclado = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("🏦 Cartão SUS", callback_data="corrigir_sus"),
+                    InlineKeyboardButton("🆔 ID Regulação", callback_data="corrigir_regulacao"),
+                ],
+                [
+                    InlineKeyboardButton("Nome", callback_data="corrigir_nome"),
+                    InlineKeyboardButton("Nascimento", callback_data="corrigir_nascimento"),
+                ],
+                [
+                    InlineKeyboardButton("Especialidade", callback_data="corrigir_cbo"),
+                    InlineKeyboardButton("Procedimento", callback_data="corrigir_procedimento"),
+                ],
+                [InlineKeyboardButton("⬅️ Voltar ao Resumo", callback_data="resumo_voltar")],
+            ]
+        )
+
+        # O parse_mode="HTML" garante que o negrito funcione
+        await query.edit_message_text("✏️ <b>O que você deseja corrigir?</b>", reply_markup=teclado, parse_mode="HTML")
+        return ETAPA_RESUMO
+
+    elif data == "resumo_voltar":
+        return await mostrar_resumo(update, context)
+
+    return ETAPA_RESUMO
+
+
+async def iniciar_correcao(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    query = update.callback_query
+    await query.answer()
+
+    campo = query.data.replace("corrigir_", "")  # Ex: sus, regulacao, nome, etc.
+    context.user_data["_editando_campo"] = campo
+
+    mensagens = {
+        "sus": "Digite o novo <b>Cartão SUS</b> (15 dígitos):",
+        "regulacao": "Digite o novo <b>ID da Regulação</b> (8 dígitos):",
+        "nome": "Digite o novo <b>Nome</b> do paciente:",
+        "nascimento": "Digite a nova <b>Data de Nascimento</b> (DD/MM/AAAA):",
+        "cbo": "Digite a nova <b>Especialidade</b>:",
+        "procedimento": "Digite o novo <b>Procedimento</b>:",
+    }
+
+    await query.edit_message_text(mensagens.get(campo, "Digite o novo valor:"), parse_mode="HTML")
+
+    # Retorna um estado para aguardar a digitação do novo valor
+    return ETAPA_CORRIGINDO
+
+
+async def receber_correcao(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    campo = context.user_data.get("_editando_campo")
+    novo_valor = update.message.text.strip()
+
+    # Tratamentos específicos
+    if campo == "sus":
+        novo_valor = re.sub(r"\D", "", novo_valor)
+    elif campo == "nascimento":
+        try:
+            from datetime import datetime
+
+            data_obj = datetime.strptime(novo_valor, "%d/%m/%Y")
+            novo_valor = data_obj.strftime("%Y-%m-%d")
+        except ValueError:
+            await update.message.reply_text("⚠️ Data inválida. Digite no formato DD/MM/AAAA:")
+            return ETAPA_CORRIGINDO
+    elif campo in ["cbo", "procedimento", "nome"]:
+        novo_valor = novo_valor.upper()
+
+    # Salva o novo valor
+    chaves = {
+        "sus": "sus",
+        "regulacao": "numero_regulacao",
+        "nome": "nome",
+        "nascimento": "nascimento",
+        "cbo": "cbo",
+        "procedimento": "procedimento",
+    }
+
+    context.user_data[chaves.get(campo, campo)] = novo_valor
+
+    # Limpa a flag de edição
+    context.user_data.pop("_editando_campo", None)
+
+    # Volta para a tela de resumo com os dados atualizados
+    return await mostrar_resumo(update, context)
