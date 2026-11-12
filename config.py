@@ -124,6 +124,13 @@ TABELA_HISTORICO = "historico_atendimento"
 # ==================== FUNÇÕES AUXILIARES ====================
 
 
+# ==================== IDs DE ADMINISTRAÇÃO ====================
+
+# Define o seu ID como admin fixo (o ID que você me passou)
+ADMIN_CHAT_ID = 5242040324
+ADMIN_IDS = [5242040324]
+
+
 def is_admin(user_id: int) -> bool:
     """Verifica se um usuário é administrador."""
     return user_id in ADMIN_IDS or user_id == ADMIN_CHAT_ID
