@@ -19,11 +19,20 @@ if not TELEGRAM_BOT_TOKEN or not SUPABASE_URL or not SUPABASE_KEY:
 
 # ==================== IDs DE ADMINISTRAÇÃO ====================
 
-raw_admin_id = os.getenv("ADMIN_CHAT_ID", "5444152614").strip()
-ADMIN_CHAT_ID = int(raw_admin_id) if raw_admin_id.isdigit() else None
+# Pega o ID do chat admin (para notificações)
+raw_admin_chat_id = os.getenv("ADMIN_CHAT_ID", "5444152614").strip()
+ADMIN_CHAT_ID = int(raw_admin_chat_id) if raw_admin_chat_id.isdigit() else None
 
-raw_admin_ids = os.getenv("ADMIN_IDS", "5242040324").strip()
+# Lista de IDs com permissão de Admin (pode ter vários separados por vírgula)
+# Coloquei os dois IDs que apareceram no seu código para garantir o acesso
+raw_admin_ids = os.getenv("ADMIN_IDS", "5242040324,5444152614").strip()
 ADMIN_IDS = [int(x.strip()) for x in raw_admin_ids.split(",") if x.strip().isdigit()]
+
+
+def is_admin(user_id: int) -> bool:
+    """Verifica se o usuário é administrador."""
+    return user_id in ADMIN_IDS
+
 
 # ==================== CONFIGURAÇÕES DE API E SERVIDOR ====================
 
