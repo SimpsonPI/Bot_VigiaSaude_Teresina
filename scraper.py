@@ -113,7 +113,7 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
     alerta_concatenado = " ".join(todos_avisos) if todos_avisos else ""
     alerta_texto = _limpar_texto_alerta(alerta_concatenado) or None
 
-    # 2. Varredura de Títulos
+    # 2. Varredura de Títulos (Nova abordagem: busca pelo texto do título e pega o texto ao lado)
     campos_brutos = {}
     dados_mapeados = {
         "data_consulta": None,
@@ -126,45 +126,47 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
         "previsao_atendimento": None,
     }
 
-    titulos = card.find_all(["h4", "h5"], class_=re.compile(r"card-title", re.I)) or card.find_all(["h4", "h5"])
+    # Procura por qualquer tag de título ou parágrafo que contenha os rótulos que queremos
+    for elem in soup.find_all(["h4", "h5", "p", "span", "strong", "b"]):
+        rotulo = elem.get_text(strip=True).lower()
 
-    for elem in titulos:
-        rotulo = elem.get_text(strip=True)
-        if not rotulo or "_" in rotulo:
+        # Ignora textos muito longos (que não são rótulos)
+        if len(rotulo) > 50:
             continue
 
-        p = elem.find_next_sibling(["p", "span", "div"])
-        if not p and elem.parent:
-            p = elem.parent.find(["p", "span", "div"], class_=re.compile(r"card-text|badge", re.I))
+        # Tenta pegar o valor no próximo elemento irmão, ou no pai, ou no próximo elemento da página
+        valor_elem = elem.find_next_sibling(["p", "div", "span", "h4", "h5"]) or elem.find_next(["p", "div", "span"])
 
-        if not p:
+        if not valor_elem:
             continue
 
-        valor = re.sub(r"\s+", " ", p.get_text(" ", strip=True)).strip()
-        if not valor:
+        valor = re.sub(r"\s+", " ", valor_elem.get_text(" ", strip=True)).strip()
+
+        # Se o valor for vazio ou for o próprio título, tenta o próximo
+        if not valor or valor.lower() == rotulo:
             continue
 
-        campos_brutos[rotulo] = valor
-        rotulo_lower = rotulo.lower()
-
-        if "data e hora" in rotulo_lower:
-            dados_mapeados["data_consulta"] = valor
-        elif "autorização" in rotulo_lower:
-            dados_mapeados["autorizacao"] = valor
-        elif "endereço" in rotulo_lower:
-            dados_mapeados["endereco"] = valor
-        elif "estabelecimento" in rotulo_lower:
-            dados_mapeados["estabelecimento"] = valor
-        elif "telefone" in rotulo_lower:
-            dados_mapeados["telefone"] = valor
-        elif "situação" in rotulo_lower:
+        # Mapeia os campos
+        if "situação" in rotulo:
             dados_mapeados["situacao"] = valor
-        elif "posição" in rotulo_lower or "fila" in rotulo_lower:
+        elif "posição" in rotulo and "fila" in rotulo:
             dados_mapeados["posicao_fila"] = valor
-        elif "previsão" in rotulo_lower:
+        elif "previsão" in rotulo and "atendimento" in rotulo:
             dados_mapeados["previsao_atendimento"] = valor
+        elif "data e hora" in rotulo:
+            dados_mapeados["data_consulta"] = valor
+        elif "autorização" in rotulo:
+            dados_mapeados["autorizacao"] = valor
+        elif "endereço" in rotulo:
+            dados_mapeados["endereco"] = valor
+        elif "estabelecimento" in rotulo:
+            dados_mapeados["estabelecimento"] = valor
+        elif "telefone" in rotulo:
+            dados_mapeados["telefone"] = valor
 
-    # 3. Determinação da Situação
+        campos_brutos[elem.get_text(strip=True)] = valor
+
+        # 3. Determinação da Situação (Ajustado para ler TUDO)
     situacao = dados_mapeados["situacao"] or campos_brutos.get("Situação") or _extrair_valor_campo_fms(soup, "Situação")
 
     if not situacao:
@@ -174,34 +176,26 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
             situacao = "Informada no portal"
 
     dados_mapeados["situacao"] = situacao
-    dados_mapeados["posicao_fila"] = (
+
+    # 🛑 AQUI: Tenta ler Posição e Previsão mesmo que o agendamento exista
+    posicao = (
         dados_mapeados["posicao_fila"]
         or campos_brutos.get("Posição da Fila")
+        or campos_brutos.get("Posição")
         or _extrair_valor_campo_fms(soup, "Posição da Fila")
         or "Não informada"
     )
-    dados_mapeados["previsao_atendimento"] = (
+
+    previsao = (
         dados_mapeados["previsao_atendimento"]
         or campos_brutos.get("Previsão de atendimento")
+        or campos_brutos.get("Previsão")
         or _extrair_valor_campo_fms(soup, "Previsão de atendimento")
         or "Não informada"
     )
 
-    return {
-        "sucesso": True,
-        "encontrado": True,
-        "situacao": _status_corrigido(situacao, dados_mapeados["data_consulta"]),
-        "posicao_fila": dados_mapeados["posicao_fila"],
-        "previsao_atendimento": dados_mapeados["previsao_atendimento"],
-        "data_consulta": dados_mapeados["data_consulta"],
-        "autorizacao": dados_mapeados["autorizacao"],
-        "estabelecimento": dados_mapeados["estabelecimento"],
-        "endereco": dados_mapeados["endereco"],
-        "telefone": dados_mapeados["telefone"],
-        "alerta_fms": alerta_texto,
-        "campos": campos_brutos,
-        "status_resumido": f"Situação: {situacao}",
-    }
+    dados_mapeados["posicao_fila"] = posicao
+    dados_mapeados["previsao_atendimento"] = previsao
 
 
 def formatar_data_br(data_str: str | None) -> str:
@@ -225,7 +219,9 @@ async def consultar_status_fms(numero_reg: str, max_tentativas: int = 2) -> dict
     atraso = random.uniform(1.0, 2.0)
     await asyncio.sleep(atraso)
 
-    url_fms_target = f"{URL_BUSCA_FMS}?number_id={numero_reg}"
+    url_fms_target = (
+        f"https://agendamentos.sus.fms.pmt.pi.gov.br/detail_scheduling/index?utf8=%E2%9C%93&number_id={numero_reg}"
+    )
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -236,7 +232,7 @@ async def consultar_status_fms(numero_reg: str, max_tentativas: int = 2) -> dict
     }
 
     try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=25.0, headers=headers) as client:
+        async with httpx.AsyncClient(follow_redirects=True, timeout=45.0, headers=headers) as client:
             resposta = await client.get(url_fms_target)
             if resposta.status_code == 200 and "nenhum registro" not in resposta.text.lower():
                 soup = BeautifulSoup(resposta.text, "html.parser")
@@ -277,10 +273,15 @@ async def consultar_status_fms(numero_reg: str, max_tentativas: int = 2) -> dict
 
                 return _extrair_dados_html(soup)
 
-        except (httpx.TimeoutException, httpx.RequestError) as e:
-            logger.warning(f"Tentativa ScraperAPI {tentativa}/{max_tentativas} falhou (Reg {numero_reg}): {e}")
+        except Exception as e:
+            logger.error(f"Erro na tentativa {tentativa} do ScraperAPI: {e}")
             if tentativa < max_tentativas:
                 await asyncio.sleep(2)
+            else:
+                return {
+                    "sucesso": False,
+                    "mensagem": f"Erro de conexão com a FMS: {e}",
+                }
 
     return {
         "sucesso": False,

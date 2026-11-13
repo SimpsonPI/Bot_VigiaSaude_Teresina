@@ -71,6 +71,7 @@ async def comando_meus_cadastros(update: Update, context: ContextTypes.DEFAULT_T
 async def callback_verificar_regulacao(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    print(f"🔴 DEBUG: CLIQUE RECEBIDO! Verificando regulação...")  # <-- ADICIONE ESTA LINHA
 
     user_id = update.effective_user.id
     data = query.data
@@ -123,14 +124,24 @@ async def callback_verificar_regulacao(update: Update, context: ContextTypes.DEF
             # 5. Consulta real no site
             sus_paciente = dados_db.get("numero_sus") or dados_db.get("sus") or ""
             resultado_fms = await consultar_status_fms(numero_reg, sus_paciente)
+            print("===== RESULTADO BRUTO DO SCRAPER =====")
+            print(resultado_fms)
+            print("======================================")
 
             # 🎨 SALVA O STATUS NO BANCO (Agora a coluna existe!)
             # ... código anterior ...
             sus_paciente = dados_db.get("numero_sus") or dados_db.get("sus") or ""
             resultado_fms = await consultar_status_fms(numero_reg, sus_paciente)
 
+            # 🛑 VERIFICAÇÃO DE SEGURANÇA: Se o scraper falhar, avisa e para.
+            if not resultado_fms or not isinstance(resultado_fms, dict):
+                await query.edit_message_text(
+                    "⚠️ <b>O portal da FMS não respondeu.</b>\n\nTente novamente em alguns minutos.", parse_mode="HTML"
+                )
+                return
+
             # 🎨 SALVA O STATUS, DATA E LOCAL NO BANCO (Para as cores e os alertas)
-            if isinstance(resultado_fms, dict) and not resultado_fms.get("erro"):
+            if not resultado_fms.get("erro"):
                 situacao_site = resultado_fms.get("situacao") or "Não encontrada"
                 data_consulta_site = resultado_fms.get("data_consulta")
                 estabelecimento = resultado_fms.get("estabelecimento")
@@ -138,7 +149,6 @@ async def callback_verificar_regulacao(update: Update, context: ContextTypes.DEF
 
                 update_data = {"status_anterior": situacao_site}
 
-                # Adiciona os campos extras se o scraper retornar
                 if data_consulta_site:
                     update_data["data_consulta"] = data_consulta_site
                 if estabelecimento:

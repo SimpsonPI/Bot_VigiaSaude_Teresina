@@ -283,6 +283,7 @@ def main():
     app.add_handler(CommandHandler("privacidade", comando_privacidade))
     app.add_handler(CommandHandler("suporte", menu_suporte))
     app.add_handler(CommandHandler("meus_cadastros", comando_meus_cadastros))
+    app.add_handler(CallbackQueryHandler(callback_verificar_regulacao, pattern="^ver_reg_"))
 
     # Comandos admin (institucional)
     app.add_handler(CommandHandler("painel", comando_painel))
