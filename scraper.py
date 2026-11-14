@@ -197,6 +197,23 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
     dados_mapeados["posicao_fila"] = posicao
     dados_mapeados["previsao_atendimento"] = previsao
 
+    # 🛑 ESTE BLOCO ESTAVA FALTANDO:
+    return {
+        "sucesso": True,
+        "encontrado": True,
+        "situacao": _status_corrigido(situacao, dados_mapeados["data_consulta"]),
+        "posicao_fila": dados_mapeados["posicao_fila"],
+        "previsao_atendimento": dados_mapeados["previsao_atendimento"],
+        "data_consulta": dados_mapeados["data_consulta"],
+        "autorizacao": dados_mapeados["autorizacao"],
+        "estabelecimento": dados_mapeados["estabelecimento"],
+        "endereco": dados_mapeados["endereco"],
+        "telefone": dados_mapeados["telefone"],
+        "alerta_fms": alerta_texto,
+        "campos": campos_brutos,
+        "status_resumido": f"Situação: {situacao}",
+    }
+
 
 def formatar_data_br(data_str: str | None) -> str:
     if not data_str:

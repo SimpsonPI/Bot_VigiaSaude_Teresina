@@ -208,7 +208,8 @@ async def salvar_regulacao(dados):
         supabase.table("VigiaSaude_Teresina").insert(dados).execute()
         return True
     except Exception as e:
-        print(f"Erro: {e}")
+        print(f"ERRO NO BANCO DE DADOS: {e}")  # <-- ADICIONE ESTA LINHA
+        logger.error(f"Erro ao salvar: {e}")
         return False
 
 

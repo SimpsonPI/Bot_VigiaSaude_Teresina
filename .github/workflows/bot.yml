@@ -1,9 +1,9 @@
-name: VigiaSaude Teresina Bot
+name: VigiaSaude Premium
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Permite ligar manualmente
   schedule:
-    - cron: '0 */5 * * *'
+    - cron: '0 */5 * * *' # Liga a cada 5 horas (00:00, 05:00, 10:00, 15:00, 20:00 UTC)
 
 jobs:
   run-bot:

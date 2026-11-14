@@ -223,9 +223,10 @@ async def chamar_groq(system_prompt: str, user_message: str) -> str:
 
 
 async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handler para mensagens do administrador (linguagem natural)."""
-    if update.effective_user.id != ADMIN_ID:
+    # 🛑 BLOQUEIO: Se o usuário estiver no meio de um cadastro, a IA ignora a mensagem.
+    if context.user_data.get("_em_fluxo_admin") == "cadastro":
         return
+
     if not update.message or not update.message.text:
         return
 

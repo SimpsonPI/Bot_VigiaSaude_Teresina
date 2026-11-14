@@ -580,6 +580,7 @@ async def finalizar_cadastro(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await context.bot.send_message(
             chat_id=chat_id,
             text="❌ <b>Erro interno ao salvar.</b> Tente novamente mais tarde.",
+            parse_mode="HTML",  # <-- Adicionado para sumir com as tags <b>
             reply_markup=TECLADO_MENU,
         )
 
