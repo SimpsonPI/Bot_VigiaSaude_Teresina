@@ -19,6 +19,7 @@ except ImportError:
 
 ADMIN_ID = int(os.getenv("ADMIN_ID") or os.getenv("ADMIN_CHAT_ID") or "0")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+print(f"DEBUG GROQ: A chave carregada é '{GROQ_API_KEY}'")  # <-- ADICIONE ESTA LINHA
 NOME_ADMIN = os.getenv("NOME_ADMIN", "Sr. Lincoln")
 
 logger = logging.getLogger(__name__)
