@@ -152,6 +152,7 @@ async def post_init(app):
     from menu_institucional import configurar_menu_institucional
 
     await configurar_menu_institucional(app)
+
     # 🛑 ADICIONA O /ADMIN APENAS NO MENU DO SEU USUÁRIO
     from telegram import BotCommand, BotCommandScopeChat
 
