@@ -152,6 +152,27 @@ async def post_init(app):
     from menu_institucional import configurar_menu_institucional
 
     await configurar_menu_institucional(app)
+    # 🛑 ADICIONA O /ADMIN APENAS NO MENU DO SEU USUÁRIO
+    from telegram import BotCommand, BotCommandScopeChat
+
+    try:
+        comandos_admin = [
+            BotCommand("start", "👋 Iniciar atendimento"),
+            BotCommand("cadastrar_nova", "➕ Cadastrar nova regulação"),
+            BotCommand("meus_cadastros", "📋 Ver minhas regulações"),
+            BotCommand("excluir", "🗑️ Excluir regulação"),
+            BotCommand("recursos", "✨ Conhecer os recursos"),
+            BotCommand("suporte", "💬 Central de atendimento"),
+            BotCommand("privacidade", "🔒 Política de privacidade"),
+            BotCommand("admin", "⚙️ Painel de Controle Admin"),  # <-- AQUI O COMANDO
+        ]
+
+        # Substitua pelo seu ID
+        SEU_ID = 5242040324
+        await app.bot.set_my_commands(comandos_admin, scope=BotCommandScopeChat(chat_id=SEU_ID))
+        logger.info("✅ Menu do Telegram atualizado para o Admin.")
+    except Exception as e:
+        logger.error(f"Erro ao configurar menu do admin: {e}")
 
     # --- CONFIGURAÇÃO DAS TAREFAS AGENDADAS ---
     job_queue = app.job_queue
