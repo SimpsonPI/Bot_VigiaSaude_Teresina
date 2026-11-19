@@ -35,11 +35,26 @@ BROADCAST_CONFIRMAR_ENVIO = 52
 # utils.py
 from telegram import ReplyKeyboardMarkup
 
+TECLADO_ADMIN = ReplyKeyboardMarkup(
+    [
+        ["/iniciar"],
+        ["/cadastrar_nova", "/meus_cadastros"],
+        ["/verificar_especifico"],
+        ["/corrigir", "/excluir"],
+        ["/recursos", "/suporte"],
+        ["/privacidade"],
+        ["/admin"],  # <-- Tem que estar aqui
+    ],
+    resize_keyboard=True,
+)
+
 TECLADO_MENU = ReplyKeyboardMarkup(
     [
-        ["/iniciar", "/cadastrar_nova"],
-        ["/meus_cadastros"],
-        ["/excluir", "/suporte"],
+        ["/iniciar"],
+        ["/cadastrar_nova", "/meus_cadastros"],
+        ["/verificar_especifico"],
+        ["/corrigir", "/excluir"],
+        ["/recursos", "/suporte"],
         ["/privacidade"],
     ],
     resize_keyboard=True,

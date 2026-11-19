@@ -208,8 +208,10 @@ async def callback_abrir_termo_privacidade(update: Update, context: ContextTypes
 # --- HANDLER DO COMANDO /START E /INICIAR ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handler principal do /start ou /iniciar."""
-    from utils import TECLADO_MENU
+    from config import is_admin
+    from utils import TECLADO_ADMIN, TECLADO_MENU
 
+    # 1. Define o usuário e o nome primeiro
     user = update.effective_user
     nome = user.first_name or "Usuário"
 
@@ -219,18 +221,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Acesse as opções clicando nos botões abaixo:"
     )
 
-    # Se veio de um clique de botão (ex: botão "Voltar")
+    # 2. Descobre de onde veio a mensagem
     if update.callback_query:
         await update.callback_query.answer()
         chat_id = update.callback_query.message.chat_id
     else:
         chat_id = update.message.chat_id
 
-    # Envia a mensagem com o TECLADO FÍSICO (ReplyKeyboard)
+    # 3. A MÁGICA: Escolhe o teclado dependendo de quem é o usuário
+    # 🛑 TESTE DIRETO: Verifica se o ID é o seu
+    if user.id == 5242040324:
+        teclado_para_enviar = TECLADO_ADMIN
+    else:
+        teclado_para_enviar = TECLADO_MENU
+
+    # 4. Envia a mensagem com o teclado escolhido
     await context.bot.send_message(
         chat_id=chat_id,
         text=mensagem,
-        reply_markup=TECLADO_MENU,  # <-- AQUI ESTÁ A MUDANÇA (Teclado físico, não inline)
+        reply_markup=teclado_para_enviar,
         parse_mode="HTML",
     )
 

@@ -3,6 +3,7 @@ from bot_seguranca import global_error_handler
 from handler_admin_metricas import comando_admin_metricas
 from telegram.ext import PicklePersistence
 from handler_meus_cadastros import callback_verificar_regulacao
+from handler_recursos import comando_recursos
 from handler_broadcast_cidadao import (
     iniciar_broadcast,
     receber_e_disparar,
@@ -283,6 +284,7 @@ def main():
     app.add_handler(CommandHandler("privacidade", comando_privacidade))
     app.add_handler(CommandHandler("suporte", menu_suporte))
     app.add_handler(CommandHandler("meus_cadastros", comando_meus_cadastros))
+    app.add_handler(CommandHandler("recursos", comando_recursos))
     app.add_handler(CallbackQueryHandler(callback_verificar_regulacao, pattern="^ver_reg_"))
 
     # Comandos admin (institucional)

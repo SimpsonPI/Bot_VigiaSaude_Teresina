@@ -79,7 +79,7 @@ def _limpar_texto_alerta(alerta_bruto: str) -> str:
 
 
 def _extrair_dados_html(soup: BeautifulSoup) -> dict:
-    """Extrai e mapeia todos os campos da FMS com limpeza rigorosa de texto duplicado."""
+    """Extrai e mapeia todos os campos da FMS com busca ampla e regex."""
     card = soup.find("div", class_="card-body") or soup
 
     # 1. Captura de Alertas, Avisos e Observações
@@ -113,7 +113,7 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
     alerta_concatenado = " ".join(todos_avisos) if todos_avisos else ""
     alerta_texto = _limpar_texto_alerta(alerta_concatenado) or None
 
-    # 2. Varredura de Títulos (Nova abordagem: busca pelo texto do título e pega o texto ao lado)
+    # 2. Inicialização do Dicionário
     campos_brutos = {}
     dados_mapeados = {
         "data_consulta": None,
@@ -126,47 +126,42 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
         "previsao_atendimento": None,
     }
 
-    # Procura por qualquer tag de título ou parágrafo que contenha os rótulos que queremos
-    for elem in soup.find_all(["h4", "h5", "p", "span", "strong", "b"]):
-        rotulo = elem.get_text(strip=True).lower()
+    # 3. Extração Direta por Regex (A SOLUÇÃO PARA A POSIÇÃO)
+    texto_card = card.get_text(" ", strip=True)
 
-        # Ignora textos muito longos (que não são rótulos)
-        if len(rotulo) > 50:
-            continue
+    pos_match = re.search(r"Posição da Fila\s*([\d\.]+)", texto_card, re.IGNORECASE)
+    if pos_match:
+        dados_mapeados["posicao_fila"] = pos_match.group(1).strip()
 
-        # Tenta pegar o valor no próximo elemento irmão, ou no pai, ou no próximo elemento da página
-        valor_elem = elem.find_next_sibling(["p", "div", "span", "h4", "h5"]) or elem.find_next(["p", "div", "span"])
+    prev_match = re.search(r"Previsão de atendimento\s*(.*?)(?=ID de|$)", texto_card, re.IGNORECASE)
+    if prev_match:
+        dados_mapeados["previsao_atendimento"] = prev_match.group(1).strip()
 
-        if not valor_elem:
-            continue
+    sit_match = re.search(r"Situação\s*([A-Za-zÀ-ÿ]+)", texto_card, re.IGNORECASE)
+    if sit_match:
+        dados_mapeados["situacao"] = sit_match.group(1).strip()
 
-        valor = re.sub(r"\s+", " ", valor_elem.get_text(" ", strip=True)).strip()
+    data_match = re.search(r"Data e hora da consulta marcada\s*(.*?)(?=ID de|$)", texto_card, re.IGNORECASE)
+    if data_match:
+        dados_mapeados["data_consulta"] = data_match.group(1).strip()
 
-        # Se o valor for vazio ou for o próprio título, tenta o próximo
-        if not valor or valor.lower() == rotulo:
-            continue
+    aut_match = re.search(r"Autorização do agendamento\s*([\d\.]+)", texto_card, re.IGNORECASE)
+    if aut_match:
+        dados_mapeados["autorizacao"] = aut_match.group(1).strip()
 
-        # Mapeia os campos
-        if "situação" in rotulo:
-            dados_mapeados["situacao"] = valor
-        elif "posição" in rotulo and "fila" in rotulo:
-            dados_mapeados["posicao_fila"] = valor
-        elif "previsão" in rotulo and "atendimento" in rotulo:
-            dados_mapeados["previsao_atendimento"] = valor
-        elif "data e hora" in rotulo:
-            dados_mapeados["data_consulta"] = valor
-        elif "autorização" in rotulo:
-            dados_mapeados["autorizacao"] = valor
-        elif "endereço" in rotulo:
-            dados_mapeados["endereco"] = valor
-        elif "estabelecimento" in rotulo:
-            dados_mapeados["estabelecimento"] = valor
-        elif "telefone" in rotulo:
-            dados_mapeados["telefone"] = valor
+    est_match = re.search(r"Estabelecimento executante da consulta\s*(.*?)(?=Endereço|$)", texto_card, re.IGNORECASE)
+    if est_match:
+        dados_mapeados["estabelecimento"] = est_match.group(1).strip()
 
-        campos_brutos[elem.get_text(strip=True)] = valor
+    end_match = re.search(r"Endereço do estabelecimento\s*(.*?)(?=Telefone|$)", texto_card, re.IGNORECASE)
+    if end_match:
+        dados_mapeados["endereco"] = end_match.group(1).strip()
 
-        # 3. Determinação da Situação (Ajustado para ler TUDO)
+    tel_match = re.search(r"Telefones para contato\s*([\d\s\-\(\)]+)", texto_card, re.IGNORECASE)
+    if tel_match:
+        dados_mapeados["telefone"] = tel_match.group(1).strip()
+
+    # 4. Determinação da Situação e Fallbacks
     situacao = dados_mapeados["situacao"] or campos_brutos.get("Situação") or _extrair_valor_campo_fms(soup, "Situação")
 
     if not situacao:
@@ -176,33 +171,12 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
             situacao = "Informada no portal"
 
     dados_mapeados["situacao"] = situacao
+    dados_mapeados["posicao_fila"] = dados_mapeados["posicao_fila"] or "Não informada"
+    dados_mapeados["previsao_atendimento"] = dados_mapeados["previsao_atendimento"] or "Não informada"
 
-    # 🛑 AQUI: Tenta ler Posição e Previsão mesmo que o agendamento exista
-    posicao = (
-        dados_mapeados["posicao_fila"]
-        or campos_brutos.get("Posição da Fila")
-        or campos_brutos.get("Posição")
-        or _extrair_valor_campo_fms(soup, "Posição da Fila")
-        or "Não informada"
-    )
-
-    previsao = (
-        dados_mapeados["previsao_atendimento"]
-        or campos_brutos.get("Previsão de atendimento")
-        or campos_brutos.get("Previsão")
-        or _extrair_valor_campo_fms(soup, "Previsão de atendimento")
-        or "Não informada"
-    )
-
-    dados_mapeados["posicao_fila"] = posicao
-    dados_mapeados["previsao_atendimento"] = previsao
-
-    # 🛑 ESTE BLOCO ESTAVA FALTANDO:
     # 🛑 FORÇANDO O STATUS CORRETO NO RETORNO
     status_final = situacao
-
-    # Só força "Em fila" se a posição for um número real (ex: 20, 3423)
-    if posicao and str(posicao).strip().isdigit():
+    if dados_mapeados["posicao_fila"] != "Não informada" and str(dados_mapeados["posicao_fila"]).strip().isdigit():
         status_final = "Em fila"
 
     return {

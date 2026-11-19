@@ -28,10 +28,17 @@ async def comando_meus_cadastros(update: Update, context: ContextTypes.DEFAULT_T
         await update.message.reply_text("📭 Você ainda não tem regulações cadastradas.")
         return
 
-    msg = "<b>📋 Suas Regulações Cadastradas:</b>\n\n"
+        # 🛑 CRIA A VARIÁVEL MSG COM A LEGENDA
+    msg = (
+        "<b>📋 Suas Regulações Cadastradas:</b>\n\n"
+        "<b>Legenda de Status:</b>\n"
+        "🟢 Agendado | 🟡 Em Fila | 🔵 Vencido | 🔴 Cancelado | ⚪ Pendente\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+    )
     botoes = []
 
     for i, r in enumerate(registros, 1):
+        # ... (o resto do código continua aqui embaixo)
         numero_reg = r.get("numero_reg", "S/N")
         nome = r.get("nome_paciente") or "Não informado"
         especialidade = r.get("cbo") or "Não informada"
