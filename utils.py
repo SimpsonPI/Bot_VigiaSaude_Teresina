@@ -39,7 +39,6 @@ TECLADO_ADMIN = ReplyKeyboardMarkup(
     [
         ["/iniciar"],
         ["/cadastrar_nova", "/meus_cadastros"],
-        ["/verificar_especifico"],
         ["/corrigir", "/excluir"],
         ["/recursos", "/suporte"],
         ["/privacidade"],
@@ -52,7 +51,6 @@ TECLADO_MENU = ReplyKeyboardMarkup(
     [
         ["/iniciar"],
         ["/cadastrar_nova", "/meus_cadastros"],
-        ["/verificar_especifico"],
         ["/corrigir", "/excluir"],
         ["/recursos", "/suporte"],
         ["/privacidade"],
