@@ -1,3 +1,4 @@
+from dateutil.parser import isoparse
 # verificacao_limite.py
 import logging
 from datetime import datetime, timezone, timedelta
@@ -73,7 +74,7 @@ def pode_verificar(chat_id: str, tipo: str) -> tuple[bool, str, int]:
             ultima_str = reg.get("ultima_verificacao")
             if ultima_str:
                 try:
-                    ultima = datetime.fromisoformat(str(ultima_str).replace("Z", "+00:00"))
+                    ultima = isoparse(str(ultima_str).replace("Z", "+00:00"))
                 except Exception:
                     ultima = None
         else:
@@ -84,7 +85,7 @@ def pode_verificar(chat_id: str, tipo: str) -> tuple[bool, str, int]:
                 ultima_str = reg.get("ultima_verificacao")
                 if ultima_str:
                     try:
-                        ultima = datetime.fromisoformat(str(ultima_str).replace("Z", "+00:00"))
+                        ultima = isoparse(str(ultima_str).replace("Z", "+00:00"))
                         # Verifica se a última consulta foi HOJE no horário de Brasília
                         agora_br = datetime.now(timezone.utc) - timedelta(hours=3)
                         if ultima.astimezone(timezone(timedelta(hours=-3))).date() == agora_br.date():

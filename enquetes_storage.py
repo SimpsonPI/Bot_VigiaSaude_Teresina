@@ -1,3 +1,4 @@
+from dateutil.parser import isoparse
 # enquetes_storage.py
 """
 Armazenamento local de enquetes em JSON.
@@ -213,7 +214,7 @@ def obter_enquetes_expiradas() -> list:
         if not fecha_str:
             continue
         try:
-            fecha = datetime.fromisoformat(fecha_str.replace("Z", "+00:00"))
+            fecha = isoparse(fecha_str.replace("Z", "+00:00"))
             if agora >= fecha:
                 expiradas.append(enq)
         except Exception:
@@ -227,7 +228,7 @@ def tempo_restante(enquete: dict) -> str:
     if not fecha_str:
         return "sem prazo"
     try:
-        fecha = datetime.fromisoformat(fecha_str.replace("Z", "+00:00"))
+        fecha = isoparse(fecha_str.replace("Z", "+00:00"))
         restante = (fecha - datetime.now(timezone.utc)).total_seconds()
         if restante <= 0:
             return "expirada"

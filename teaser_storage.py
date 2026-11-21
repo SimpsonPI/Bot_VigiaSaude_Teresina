@@ -1,3 +1,4 @@
+from dateutil.parser import isoparse
 # teaser_storage.py
 """
 Controla o envio de teasers e opt-out para usuários com plano expirado.
@@ -48,7 +49,7 @@ def pode_enviar_teaser(chat_id: str) -> bool:
         return True
 
     try:
-        dt_ultimo = datetime.fromisoformat(ultimo.replace("Z", "+00:00"))
+        dt_ultimo = isoparse(ultimo.replace("Z", "+00:00"))
         segundos = (datetime.now(timezone.utc) - dt_ultimo).total_seconds()
         return segundos >= 24 * 3600  # 24h
     except Exception:

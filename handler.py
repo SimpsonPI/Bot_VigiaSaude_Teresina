@@ -1,3 +1,4 @@
+from dateutil.parser import isoparse
 import asyncio
 from html import escape
 import logging
@@ -543,7 +544,7 @@ async def executar_varredura_automatica(context: ContextTypes.DEFAULT_TYPE):
         res_check = sb_check.table("config_sistema").select("valor").eq("chave", "ultima_varredura_cidadao").execute()
         if res_check.data:
             ultima_str = res_check.data[0]["valor"]
-            ultima = datetime.fromisoformat(str(ultima_str).replace("Z", "+00:00"))
+            ultima = isoparse(str(ultima_str).replace("Z", "+00:00"))
             diff_seg = (datetime.now(timezone.utc) - ultima).total_seconds()
             if diff_seg < 6 * 3600 - 60:  # margem de 60s
                 logger.info(

@@ -1,3 +1,4 @@
+from dateutil.parser import isoparse
 # database_atendimento.py
 import logging
 from datetime import datetime, timezone
@@ -212,7 +213,7 @@ async def buscar_estatisticas_admin_periodo() -> dict:
         if not s:
             return None
         try:
-            return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+            return isoparse(str(s).replace("Z", "+00:00"))
         except Exception:
             return None
 

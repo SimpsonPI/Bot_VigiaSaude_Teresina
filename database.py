@@ -1,3 +1,4 @@
+from dateutil.parser import isoparse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -72,7 +73,7 @@ def verificar_assinatura_ativa(user_id: int) -> bool:
         if not data_vencimento_str:
             return False
 
-        vencimento = datetime.fromisoformat(data_vencimento_str.replace("Z", "+00:00"))
+        vencimento = isoparse(data_vencimento_str.replace("Z", "+00:00"))
         return datetime.now(timezone.utc) < vencimento
     except Exception as e:
         logger.error(f"Erro ao verificar assinatura ativa para o ID {user_id}: {e}")
@@ -107,7 +108,7 @@ def ativar_ou_atualizar_assinatura(telegram_id: int, tipo_plano: str):
 
                     # Só soma se: status ativo, não é degustação e vencimento é futuro
                     if status_atual in ("ativo", "active", "ativa") and tipo_atual != "degustacao" and venc_str:
-                        venc_dt = datetime.fromisoformat(str(venc_str).replace("Z", "+00:00"))
+                        venc_dt = isoparse(str(venc_str).replace("Z", "+00:00"))
                         if venc_dt > agora:
                             base = venc_dt  # usa o vencimento futuro
                             logger.info(
