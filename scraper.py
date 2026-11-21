@@ -129,19 +129,25 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
     # 3. Extração Direta por Regex (A SOLUÇÃO PARA A POSIÇÃO)
     texto_card = card.get_text(" ", strip=True)
 
-    pos_match = re.search(r"Posição da Fila\s*([\d\.]+)", texto_card, re.IGNORECASE)
+    # Posição (Aceita dois pontos opcional e captura o número)
+    pos_match = re.search(r"Posição da Fila\s*:?\s*([\d\.]+)", texto_card, re.IGNORECASE)
     if pos_match:
         dados_mapeados["posicao_fila"] = pos_match.group(1).strip()
 
-    prev_match = re.search(r"Previsão de atendimento\s*(.*?)(?=ID de|$)", texto_card, re.IGNORECASE)
+    # Previsão (Aceita dois pontos opcional)
+    prev_match = re.search(r"Previsão de atendimento\s*:?\s*(.*?)(?=ID de|$)", texto_card, re.IGNORECASE)
     if prev_match:
         dados_mapeados["previsao_atendimento"] = prev_match.group(1).strip()
 
-    sit_match = re.search(r"Situação\s*([A-Za-zÀ-ÿ]+)", texto_card, re.IGNORECASE)
+    # Situação (Evita capturar "ID" quando o portal deixa o campo vazio)
+    sit_match = re.search(r"Situação\s*:?\s*([A-Za-zÀ-ÿ]+)", texto_card, re.IGNORECASE)
     if sit_match:
-        dados_mapeados["situacao"] = sit_match.group(1).strip()
+        val_sit = sit_match.group(1).strip().upper()
+        if val_sit not in ["ID", "DE", "REGULAÇÃO", "FILA", "DA"]:
+            dados_mapeados["situacao"] = sit_match.group(1).strip()
 
-    data_match = re.search(r"Data e hora da consulta marcada\s*(.*?)(?=ID de|$)", texto_card, re.IGNORECASE)
+    # Data (Aceita dois pontos opcional)
+    data_match = re.search(r"Data e hora da consulta marcada\s*:?\s*(.*?)(?=ID de|$)", texto_card, re.IGNORECASE)
     if data_match:
         dados_mapeados["data_consulta"] = data_match.group(1).strip()
 
