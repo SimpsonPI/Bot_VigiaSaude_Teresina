@@ -107,7 +107,9 @@ async def callback_verificar_regulacao(update: Update, context: ContextTypes.DEF
 
             # 2. Trava de 2 horas (com exceção para o Admin)
             if not is_admin(user_id) and ultima_verif_str:
-                ultima_verif = datetime.fromisoformat(ultima_verif_str.replace("Z", "+00:00"))
+                from dateutil.parser import isoparse
+
+                ultima_verif = isoparse(ultima_verif_str)
                 tempo_decorrido = agora - ultima_verif
 
                 if tempo_decorrido < timedelta(hours=2):
