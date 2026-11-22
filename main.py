@@ -372,7 +372,7 @@ def main():
     app.add_handler(conv_broadcast_cidadao)
     # 📌 Rota para os botões do teclado inline (InlineKeyboard)
     # ─── Servidor HTTP auxiliar ───
-    PORT = int(os.environ.get("PORT", "8080"))
+    PORT = int(os.getenv("PORT") or 8080)
 
     class HealthHandler(BaseHTTPRequestHandler):
         def log_message(self, format, *args):
