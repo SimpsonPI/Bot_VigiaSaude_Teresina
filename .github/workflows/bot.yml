@@ -3,7 +3,11 @@ name: VigiaSaude Premium
 on:
   workflow_dispatch: # Permite ligar manualmente
   schedule:
-    - cron: '0 */5 * * *' # Liga a cada 5 horas (00:00, 05:00, 10:00, 15:00, 20:00 UTC)
+    - cron: '0 */5 * * *' # Liga a cada 5 horas
+
+concurrency:
+  group: vigiasaude-premium-bot
+  cancel-in-progress: true
 
 jobs:
   run-bot:
@@ -22,13 +26,22 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install beautifulsoup4
+          pip install beautifulsoup4 python-dateutil
 
       - name: Executar Bot
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
+          ADMIN_ID: ${{ secrets.ADMIN_ID }}
+          NOME_ADMIN: ${{ secrets.NOME_ADMIN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SCRAPER_KEY: ${{ secrets.SCRAPER_KEY }}
+          MERCADOPAGO_ACCESS_TOKEN: ${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          PORT: ${{ secrets.PORT }}
         run: |
           python main.py
-          
