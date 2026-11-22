@@ -1,9 +1,11 @@
 # admin_panel.py
 import logging
+import asyncio
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 
 from config import ADMIN_IDS, ADMIN_CHAT_ID
+from database import supabase  # <-- O import do supabase fica aqui
 
 logger = logging.getLogger(__name__)
 
@@ -170,6 +172,39 @@ async def callback_painel(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "🎛️ Painel fechado.\n\nUse <code>/painel</code> para reabrir.",
             parse_mode="HTML",
         )
+        return
+    if data == "admin_manutencao":
+        # 1. Busca todos os usuários únicos cadastrados
+        try:
+            # Busca na tabela de regulações para pegar todos os chat_ids únicos
+            res = supabase.table("AlertaSUS_2.0").select("chat_id").execute()
+            # Usa um set (conjunto) para remover IDs duplicados
+            usuarios_unicos = list({str(r["chat_id"]) for r in res.data if r.get("chat_id")})
+        except Exception as e:
+            await query.answer("Erro ao buscar usuários.", show_alert=True)
+            return
+
+        # 2. Define a mensagem (Opção 1 que você escolheu)
+        mensagem = (
+            "🛠️ <b>Aviso de Manutenção</b>\n\n"
+            "Olá! Estamos passando por uma rápida manutenção para melhorar o nosso sistema. "
+            "<b>Desculpe o transtorno</b>, em breve estaremos de volta com tudo funcionando perfeitamente para você!"
+        )
+
+        # 3. Envia para todos com um pequeno intervalo (para não ser bloqueado)
+        sucesso = 0
+        await query.edit_message_text(f"⏳ Enviando alerta para {len(usuarios_unicos)} usuários...")
+
+        for uid in usuarios_unicos:
+            try:
+                await context.bot.send_message(chat_id=uid, text=mensagem, parse_mode="HTML")
+                sucesso += 1
+                await asyncio.sleep(0.05)  # Pausa de 50ms entre envios
+            except Exception:
+                pass  # Ignora se o usuário tiver bloqueado o bot
+
+        # 4. Avisa o admin que terminou
+        await query.edit_message_text(f"✅ Alerta enviado com sucesso para {sucesso} usuários.")
         return
 
     if data == "painel_inicio":
