@@ -17,9 +17,11 @@ except ImportError:
     logger = logging.getLogger(__name__)
     logger.warning("⚠️ enquetes_storage não encontrado. Contexto de enquetes desativado.")
 
+logger = logging.getLogger(__name__)
+
 ADMIN_ID = int(os.getenv("ADMIN_ID") or os.getenv("ADMIN_CHAT_ID") or "0")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-print(f"DEBUG GROQ: A chave carregada é '{GROQ_API_KEY}'")  # <-- ADICIONE ESTA LINHA
+print(f"DEBUG GROQ: A chave carregada é '{GROQ_API_KEY}'")
 NOME_ADMIN = os.getenv("NOME_ADMIN", "Sr. Lincoln")
 
 logger = logging.getLogger(__name__)
@@ -224,6 +226,8 @@ async def chamar_groq(system_prompt: str, user_message: str) -> str:
 
 
 async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    nome_usuario = NOME_ADMIN if user_id == 5242040324 else "Usuário de Teste" if user_id == 5444152614 else "Usuário"
     # 🛑 BLOQUEIO: Se o usuário estiver no meio de um cadastro, a IA ignora a mensagem.
     if context.user_data.get("_em_fluxo_admin") == "cadastro":
         return
@@ -256,7 +260,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
     if any(saudacao in user_text_lower for saudacao in SAUDACOES):
         prompt_conversa = (
             f"Você é o VS, assistente do {NOME_ADMIN}. "
-            f"O usuário é {NOME_ADMIN}. "
+            f"O usuário é {nome_usuario}. "
             "Responda de forma amigável e curta. NUNCA invente informações."
         )
         resposta = await chamar_groq(prompt_conversa, user_message)
@@ -344,7 +348,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
         contexto_sistema = await coletar_contexto_sistema()
         prompt_conversa = (
             f"Você é o VS, assistente do {NOME_ADMIN}. "
-            f"O usuário é {NOME_ADMIN} (administrador do sistema).\n\n"
+            f"O usuário é {nome_usuario}.\n\n"
             f"CONTEXTO ATUAL DO SISTEMA:\n{contexto_sistema}\n\n"
             "Use essas informações para responder perguntas sobre o sistema. "
             "Se o admin perguntar sobre enquetes, usuários, regulações, etc., use os dados acima. "
@@ -375,7 +379,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
     contexto_sistema = await coletar_contexto_sistema()
 
     prompt_deteccao = (
-        f"Você é o VS, assistente do {NOME_ADMIN}. Identifique a ação que o administrador deseja executar. "
+        f"Você é o VS, assistente do {NOME_ADMIN}. Identifique a ação que o usuário deseja executar. "
         "Responda APENAS com um JSON válido: "
         '{"acao": "consultar" | "ler_arquivo" | "resumo", '
         '"tabela": "nome_da_tabela", '
@@ -439,7 +443,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         prompt_formatacao = (
             f"Você é o VS, assistente do {NOME_ADMIN}. "
-            f"O administrador pediu: '{user_message}'.\n\n"
+            f"O usuário pediu: '{user_message}'.\n\n"
             f"DADOS DO BANCO:\n{dados_brutos}\n\n"
             f"CONTEXTO ATUAL DO SISTEMA:\n{contexto_sistema}\n\n"
             f"CONHECIMENTO DO SISTEMA:\n{conhecimento}\n\n"
@@ -452,7 +456,7 @@ async def executar_acao_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
     except json.JSONDecodeError:
         prompt_formatacao = (
             f"Você é o VS, assistente do {NOME_ADMIN}. "
-            f"O administrador pediu: '{user_message}'.\n\n"
+            f"O usuário pediu: '{user_message}'.\n\n"
             f"CONTEXTO ATUAL DO SISTEMA:\n{contexto_sistema}\n\n"
             f"CONHECIMENTO DO SISTEMA:\n{conhecimento}\n\n"
             "Responda de forma amigável e curta usando o contexto acima. NUNCA invente informações."
