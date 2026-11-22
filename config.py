@@ -37,10 +37,7 @@ def is_admin(user_id: int) -> bool:
 # ==================== CONFIGURAÇÕES DE API E SERVIDOR ====================
 
 SCRAPER_KEY = os.getenv("SCRAPER_KEY")
-try:
-    PORT = int(os.getenv("PORT") or 10000)
-except ValueError:
-    PORT = 10000
+PORT = int(os.getenv("PORT", 10000))
 
 # URL Base do Formulário WebApp no GitHub Pages
 URL_FORMULARIO_PAGES = "https://simpsonpi.github.io/alerta-sus-bot/"
