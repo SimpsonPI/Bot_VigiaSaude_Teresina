@@ -177,7 +177,7 @@ async def callback_painel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 1. Busca todos os usuários únicos cadastrados
         try:
             # Busca na tabela de regulações para pegar todos os chat_ids únicos
-            res = supabase.table("AlertaSUS_2.0").select("chat_id").execute()
+            res = supabase.table("VigiaSaude_Teresina").select("chat_id").execute()
             # Usa um set (conjunto) para remover IDs duplicados
             usuarios_unicos = list({str(r["chat_id"]) for r in res.data if r.get("chat_id")})
         except Exception as e:

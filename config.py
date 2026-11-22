@@ -20,7 +20,7 @@ if not TELEGRAM_BOT_TOKEN or not SUPABASE_URL or not SUPABASE_KEY:
 # ==================== IDs DE ADMINISTRAÇÃO ====================
 
 # Pega o ID do chat admin (para notificações)
-raw_admin_chat_id = os.getenv("ADMIN_CHAT_ID", "5444152614").strip()
+raw_admin_chat_id = os.getenv("ADMIN_CHAT_ID", "5242040324").strip()
 ADMIN_CHAT_ID = int(raw_admin_chat_id) if raw_admin_chat_id.isdigit() else None
 
 # Lista de IDs com permissão de Admin (pode ter vários separados por vírgula)

@@ -313,7 +313,7 @@ def main():
     app.add_handler(CommandHandler("painel", comando_painel))
     app.add_handler(CommandHandler("admin", comando_painel))
     app.add_handler(CommandHandler("menu_admin", comando_painel))
-    app.add_handler(CallbackQueryHandler(callback_painel, pattern="^painel_"))
+    app.add_handler(CallbackQueryHandler(callback_painel, pattern="^(painel_|admin_manutencao)"))
     app.add_handler(CallbackQueryHandler(selecionar_regulacao_callback, pattern="^cancelar_corr$"))
     app.add_handler(CallbackQueryHandler(selecionar_regulacao_callback, pattern="^finalizar_corr$"))
     app.add_handler(CommandHandler("estatisticas", comando_estatisticas))
