@@ -189,7 +189,8 @@ async def callback_verificar_regulacao(update: Update, context: ContextTypes.DEF
                 previsao = resultado_fms.get("previsao_atendimento") or "Não informada"
 
                 # Formata o SUS mascarado
-                sus_mascarado = sus_paciente[:3] + "****" + sus_paciente[-3:] if len(sus_paciente) > 6 else sus_paciente
+                sus_str = str(sus_paciente or "")
+                sus_mascarado = sus_str[:3] + "****" + sus_str[-3:] if len(sus_str) > 6 else sus_str
 
                 texto_final = (
                     f"📋 <b>STATUS DA REGULAÇÃO</b>\n\n"
