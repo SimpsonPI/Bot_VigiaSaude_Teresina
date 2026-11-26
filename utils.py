@@ -45,6 +45,7 @@ TECLADO_ADMIN = ReplyKeyboardMarkup(
         ["/admin"],  # <-- Tem que estar aqui
     ],
     resize_keyboard=True,
+    one_time_keyboard=True,  # <-- ADICIONE ESTA LINHA
 )
 
 TECLADO_MENU = ReplyKeyboardMarkup(
@@ -56,6 +57,7 @@ TECLADO_MENU = ReplyKeyboardMarkup(
         ["/privacidade"],
     ],
     resize_keyboard=True,
+    one_time_keyboard=True,  # <-- ADICIONE ESTA LINHA
 )
 
 TECLADO_CANCELAR = ReplyKeyboardMarkup([["🚫 Cancelar Operação"]], resize_keyboard=True)

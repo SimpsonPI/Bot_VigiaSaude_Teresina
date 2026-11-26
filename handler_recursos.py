@@ -6,7 +6,7 @@ from utils import TECLADO_MENU
 async def comando_recursos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = (
         "✨ <b>Conheça os recursos do VigiaSaúde Teresina:</b>\n\n"
-        "🔔 <b>Monitoramento Automático:</b> O bot vigia o portal da FMS a cada 6 horas e te avisa no celular quando algo mudar.\n\n"
+        "🔔 <b>Monitoramento Automático:</b> O bot vigia o portal da FMS a cada 12 horas e te avisa no celular quando algo mudar.\n\n"
         "⏰ <b>Lembretes de Consulta:</b> Você recebe avisos 7, 3 e 1 dia antes do seu procedimento para não perder a vaga.\n\n"
         "🔄 <b>Verificação Manual:</b> Precisa de uma resposta rápida? Use o botão de verificar para consultar o status na hora.\n\n"
         "📊 <b>Semáforo de Status:</b> Entenda rapidamente se sua consulta está Agendada (🟢), Em Fila (🟡), Vencida (🔵) ou Cancelada (🔴).\n\n"

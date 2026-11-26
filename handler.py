@@ -546,7 +546,7 @@ async def executar_varredura_automatica(context: ContextTypes.DEFAULT_TYPE):
             ultima_str = res_check.data[0]["valor"]
             ultima = isoparse(str(ultima_str).replace("Z", "+00:00"))
             diff_seg = (datetime.now(timezone.utc) - ultima).total_seconds()
-            if diff_seg < 6 * 3600 - 60:  # margem de 60s
+            if diff_seg < 12 * 3600 - 60:  # margem de 60s
                 logger.info(
                     f"⏭️ Varredura ignorada: última rodou há {diff_seg / 60:.0f} min "
                     f"(<6h). Reinício não vai duplicar notificações."
@@ -604,22 +604,15 @@ async def executar_varredura_automatica(context: ContextTypes.DEFAULT_TYPE):
             status_ant = (reg.get("status_anterior_cidadao") or "").strip()
             posicao_ant = (reg.get("posicao_anterior") or "").strip()
 
-            if not num_reg or not chat_id:
+            # 🛑 FILTRO DE SEGURANÇA: Ignora regulações canceladas, vencidas ou concluídas
+            texto_verificacao = f"{status_ant} {reg.get('aviso_portal', '')}".lower()
+            if any(termo in texto_verificacao for termo in ["cancelad", "vencid", "concluid", "atendid"]):
+                logger.info(f"⏭️ {num_reg} (chat {chat_id}): ignorado na varredura (Cancelada/Vencida).")
+                ignoradas += 1
                 continue
+            # ... (o resto do código segue igual: if not num_reg...)
 
-            num_key = str(num_reg).strip()
-
-            if num_key in cache_fms:
-                resultado_fms = cache_fms[num_key]
-            else:
-                try:
-                    resultado_fms = await consultar_status_fms(num_key)
-                    cache_fms[num_key] = resultado_fms
-                except Exception as e:
-                    logger.error(f"Erro ao consultar {num_reg}: {e}")
-                    continue
-
-            if not (isinstance(resultado_fms, dict) and resultado_fms.get("sucesso")):
+            if not num_reg or not chat_id:
                 continue
 
             verificadas += 1

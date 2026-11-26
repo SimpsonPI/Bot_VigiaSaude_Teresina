@@ -318,7 +318,7 @@ async def salvar_novo_valor(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 f"• <b>ID anterior:</b> <code>{num_reg}</code>\n"
                 f"• <b>Novo ID:</b> <code>{novo_valor}</code>\n\n"
                 "💡 <i>O status desta regulação será atualizado automaticamente "
-                "na próxima verificação (a cada 6 horas). Você também pode "
+                "na próxima verificação (a cada 12 horas). Você também pode "
                 "forçar agora com /verificar_especifico.</i>",
                 parse_mode="HTML",
                 reply_markup=TECLADO_MENU,

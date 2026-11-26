@@ -183,7 +183,7 @@ async def post_init(app):
 
         job_queue.run_repeating(
             executar_varredura_automatica,
-            interval=6 * 3600,  # 6 HORAS
+            interval=12 * 3600,  # 6 HORAS
             first=180,  # primeira execução 3 min após o boot
         )
         logger.info("✅ Tarefas agendadas: varredura regulações (6h)")
@@ -333,10 +333,7 @@ def main():
     app.add_handler(CommandHandler("listar_autorizados", comando_listar_autorizados))
     app.add_handler(CommandHandler("admin_metricas", comando_admin_metricas))
     # Handler IA do admin
-    app.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, executar_acao_admin),
-        group=1,
-    )
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & ~filters.UpdateType.MESSAGE, executar_acao_admin))
 
     app.add_handler(CallbackQueryHandler(start, pattern="^iniciar$"))
 

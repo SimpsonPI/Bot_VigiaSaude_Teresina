@@ -64,7 +64,8 @@ async def comando_meus_cadastros(update: Update, context: ContextTypes.DEFAULT_T
             f"📋 Procedimento: {html.escape(procedimento)}\n\n"
         )
 
-        nome_curto = nome[:12] + "..." if len(nome) > 12 else nome
+        nome_str = str(nome or "")
+        nome_curto = nome_str[:12] + "..." if len(nome_str) > 12 else nome_str
         botoes.append(
             [InlineKeyboardButton(f"🔍 Verificar {nome_curto} ({numero_reg})", callback_data=f"ver_reg_{numero_reg}")]
         )

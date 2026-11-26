@@ -147,7 +147,7 @@ def _extrair_dados_html(soup: BeautifulSoup) -> dict:
             dados_mapeados["situacao"] = sit_match.group(1).strip()
 
     # Data (Aceita dois pontos opcional)
-    data_match = re.search(r"Data e hora da consulta marcada\s*:?\s*(.*?)(?=ID de|$)", texto_card, re.IGNORECASE)
+    data_match = re.search(r"(\d{2}/\d{2}/\d{4}\s*-\s*\d{2}:\d{2})", texto_card)
     if data_match:
         dados_mapeados["data_consulta"] = data_match.group(1).strip()
 
@@ -330,13 +330,13 @@ def montar_mensagem_regulacao(
     if isinstance(resultado, dict):
         situacao = resultado.get("situacao") or "Informada no portal"
 
-        # 🔄 Normaliza textos do FMS para algo mais claro ao usuário
+        # 📄 Normaliza textos do FMS para algo mais claro ao usuário
         _sit_lower = str(situacao).strip().lower()
         if "informada" in _sit_lower:
             situacao = "Em fila"
         elif "agendada" in _sit_lower:
             situacao = "Agendada"
-        elif "vencida" in _sit_lower or "expirada" in _sit_lower:
+        elif "vencida" in _sit_lower:
             situacao = "Vencida"
         elif "cancelada" in _sit_lower:
             situacao = "Cancelada"
